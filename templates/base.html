@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<title>
+		{% block title %}TwittyMcTweet{% endblock %}
+	</title>
+	<link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+	{% include "extend_css.html" %}
+</head>
+<body>
+	<div class="container">
+		<header>
+			{% include "header.html" %}
+		</header>
+		<div id="main" role="main">
+			{% block main %}DEFAULT{% endblock %}
+		</div>
+		<footer>
+			{% include "footer.html" %}
+		</footer>
+	</div> <!-- container -->
+	<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+</body>
+</html>
