@@ -5,14 +5,15 @@
 <h2>Latest Tweets</h2>
 <table class="table">
 	<tr>
-		<td>test</td>
+		<th>User</th><th>Time</th><th>Content</th>
 	</tr>
-<!-- {% for tweet in get_tweets() %}
+{% for tweet in get_tweets() %}
   <tr>
-    <td>{{ tweet.username }}</td>
-    <td>{{ tweet.dateTime }}</td>
+    <td>{{ tweet.username() }}</td>
+    <td>{{ tweet.vals['dateTime'] }}</td>
+    <td>{{ tweet.vals['content'] }}</td>
   </tr>
-{% endfor %} -->
+{% endfor %}
 </table>
 
 {% endblock %}

@@ -87,35 +87,42 @@ def users():
 def user_profile(userid):
 	return render_template("user.html", user=User.find_by_id(userid))
 
-@app.route("/users/<userid>/tweets")
+@app.route("/users/<int:userid>/tweets")
 def user_tweets(userid):
 	print "here's where we should show the tweets for user %d" % userid
-	return render_template(url_for("users"));
+	return redirect(url_for("show_tweets"));
 
 @app.route("/users/<userid>/edit")
 def edit_user(userid):
 	print "to edit a user's profile"
-	return render_template(url_for("users"))
+	return redirect(url_for("users"))
 
-@app.route("/tweets", methods=["GET", "POST"])
+@app.route("/tweets")
 def show_tweets():
 	set_active("tweets")
 	if request.method == "GET":
 		return render_template("tweets.html")
 	elif request.method == "POST": # make a new user account		
-		return render_template(url_for("signup"))
+		return redirect(url_for("signup"))
 
 @app.route("/tweets/new", methods=["GET", "POST"])
-def make_tweet():
+def tweet():
 	set_active("newtweet")
 	if request.method == "GET":
 		if user_logged_in():
 			return render_template("newtweet.html")
 		else:
-			return render_template(url_for("signup"))
+			return redirect(url_for("signup"))
 	elif request.method == "POST":
-		print "heynow"
-		return 
+		content = request.form.get("content", "")
+		errors = {}
+		if user_logged_in():
+			userid = current_user().userID()
+			make_tweet(userid, content)
+			return redirect(url_for('user_tweets', userid=userid))
+		else:
+			errors['general'] = "You are not logged in"
+			return render_template("home.html", error=errors)
 
 @app.route("/signout")
 def signout():

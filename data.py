@@ -110,20 +110,54 @@ def add_user(username, password, email):
 
 #### TWEETS ####
 
+class Tweet(object):
+	def __init__(self, tweetdic):
+		self.vals = tweetdic
+
+	@staticmethod
+	def find_by_username(username):
+		found = sql_search("select * from Users, Tweets where username = " + add_quotes(username))
+		if len(found) > 0 and found[0]: 
+			return User(found[0])
+		else: 
+			return None
+
+	@staticmethod
+	def find_by_id(tweetid):
+		found = sql_search("select * from Tweets where tweetID = " + str(tweetid))
+		if len(found) > 0 and found[0]: 
+			return User(found[0])
+		else: 
+			return None
+
+	def username(self):
+		user = sql_search("select * from Users where userID=%s" % str(self.vals['userID']))[0]
+		return user['username']
+
+	def attrs_to_display(self):
+		return ["username", "fullName", "email", "tagline"]
+
+	def __str__(self):
+		vals_to_print = ["tweetID", "dateTime"]
+		ret = self.username()
+		for key in self.vals:
+			if key in vals_to_print:
+				ret += " %s: %s" % (key, self.vals[key])
+		return ret
+
+
 get_hashtags = lambda content : list(set([ word.strip().split()[0] for word in content.split("#")[1:]]))
 get_mentions = lambda content : list(set([ word.strip().split()[0] for word in content.split("@")[1:]]))
 
 def get_tweets():
-	q = "select * from Tweets;"
-	cursor = g.db.cursor()
-	num_results = cursor.execute(q)
-	print "result = ", num_results
-	return data_from_cursor(cursor)
+	data = sql_search("select * from Tweets;")
+	print "data:", data
+	return [ Tweet(tweetdic) for tweetdic in data ]
 
 def make_tweet(userid, content):
 	if not user_logged_in(): return
 	print "Making a new tweet"
-	q = "insert into Tweets (userid, content) values ('%s', '%s')" % (userid, content)
+	q = "insert into Tweets (userid, content) values (%s, '%s')" % (str(userid), content)
 	tweetid = sql_execute(q)
 	print "Hashtags:", get_hashtags(content)
 	for hashtag in get_hashtags(content):
