@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<h2>{{ user.username() }}</h2>
+<table class="table">
+	{% for key in user.attrs_to_display() %}
+	  <tr>
+	    <td> {{key }}: </td><td> {{ user.vals[key] }} </td>
+	  </tr>
+  	{% endfor %}
+</table>
+
+{% endblock %}

@@ -1,6 +1,12 @@
+{% if 'general' in error %}
+<p class = "text-center text-error">{{error['general']}}</p>
+{% endif %}
+
 <div class="masthead">
-    <p class="muted text-right">{% if logged_in %}You are logged in as {{ user_name }}
-                                 {% else %}You are not logged in. <a href="/login">log in</a>
+    <p class="muted text-right">{% if user_logged_in() %}You are logged in as {{ current_user().username() }}.
+                                  <a href="{{ url_for('user_profile', userid=current_user().userID()) }}">my profile</a> |
+                                  <a href="{{ url_for('signout') }}">sign out</a>
+                                 {% else %}You are not signed in. <a href="{{url_for('signin')}}">sign in</a>
                                            or <a href="/signup">sign up</a> now.
                                  {% endif %}</p>
   <div class="navbar">
@@ -10,9 +16,11 @@
           <li class="{{ navclass["home"] }}"><a href="/">Home</a></li>
           <li class="{{ navclass["tweets"] }}"><a href="/tweets">Latest Tweets</a></li>
           <li class="{{ navclass["users"] }}"><a href="/users">{{site_name}} Users</a></li>
-          <li class="{{ navclass["tweet"] }}"><a href="/tweet">Write Tweet</a></li>
+          {% if user_logged_in() %}
+            <li class="{{ navclass["newtweet"] }}"><a href="/tweets/new">Write Tweet</a></li>
+          {% endif %}
+          <li class="{{ navclass["hashtags"] }}"><a href="/hashtags">Hashtags</a></li>
           <li class="{{ navclass["search"] }}"><a href="/search">Search</a></li>
-          <li class="{{ navclass["contact"] }}"><a href="/contact">Contact</a></li>
         </ul>
       </div>
     </div>

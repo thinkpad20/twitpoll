@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<!-- Jumbotron -->
+<div class="jumbotron">
+  <h3>Sign into {{ site_name }}</h3>
+  <form name="login" method="post" action="{{url_for('signin')}}">
+    <table class="table-centered">
+      <tr>
+        <td>Username:</td>
+        <td><input type="text" name="username" placeholder="{{pholders['name'] if 'name' in pholders}}"></td>
+        <td class="text-error">{{ error["username"] if "username" in error }}</td>
+      </tr>
+      <tr>
+        <td>Password:</td>
+        <td><input type="password" name="password"></td>
+        <td class="text-error">{{ error["password"] if "password" in error }}</td>
+      </tr>
+    </table>
+    <button class="btn btn-large" type="submit">Sign in</button>
+  </form>
+</div>
+
+
+{% endblock %}

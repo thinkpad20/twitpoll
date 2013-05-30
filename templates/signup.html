@@ -8,18 +8,22 @@
     <tr>
       <td>Choose a username:</td>
       <td><input type="text" name="username" placeholder="up to 50 characters"></td>
+      <td class="text-error">{{ error["username"] if "username" in error }}</td>
     </tr>
     <tr>
       <td>Password:</td>
-      <td><input type="password" name="email"></td>
+      <td><input type="password" name="password"></td>
+      <td class="text-error">{{ error["password"] if "password" in error }}</td>
     </tr>
     <tr>
       <td>Password confirmation:</td>
-      <td><input type="password" name="email"></td>
+      <td><input type="password" name="passwordconf"></td>
+      <td class="text-error">{{ error["passwordconf"] if "passwordconf" in error }}</td>
     </tr>
     <tr>
       <td>Email:</td>
       <td><input type="text" name="email"></td>
+      <td class="text-error">{{ error["email"] if "email" in error }}</td>
     </tr>
     <tr>
       <td><button class="btn" type="submit">Sign up!</button></td>

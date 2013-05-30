@@ -1,4 +1,4 @@
-CREATE TABLE User (
+CREATE TABLE Users (
 	username 		VARCHAR(50) 	NOT NULL UNIQUE,
 	userID 			INTEGER			NOT NULL AUTO_INCREMENT,
 	fullName 		VARCHAR(100),
@@ -15,28 +15,28 @@ CREATE TABLE User (
 	PRIMARY KEY (userID)	
 );
 
-CREATE TABLE Tweet (
+CREATE TABLE Tweets (
 	tweetID INTEGER 				NOT NULL AUTO_INCREMENT,
 	userID INTEGER	 				NOT NULL,
 	content VARCHAR(140)			NOT NULL,
 	dateTime TIMESTAMP			 	NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (tweetID),
-	FOREIGN KEY (userID) REFERENCES User(userID)
+	FOREIGN KEY (userID) REFERENCES Users(userID)
 );
 
-CREATE TABLE HashTag (
+CREATE TABLE Hashtags (
 	tweetID INTEGER 				NOT NULL,
 	content VARCHAR(140) 			NOT NULL,
 	PRIMARY KEY (content),
-	FOREIGN KEY (tweetID) REFERENCES Tweet(tweetID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID)
 );
 
 CREATE TABLE Follows (
 	follower INTEGER 				NOT NULL,
 	followee INTEGER 				NOT NULL,
 	PRIMARY KEY (follower, followee),
-	FOREIGN KEY (follower) REFERENCES User(userID),
-	FOREIGN KEY (followee) REFERENCES User(userID)
+	FOREIGN KEY (follower) REFERENCES Users(userID),
+	FOREIGN KEY (followee) REFERENCES Users(userID)
 );
 
 CREATE TABLE Retweets (
@@ -44,55 +44,55 @@ CREATE TABLE Retweets (
 	userID INTEGER 					NOT NULL,
 	dateTime TIMESTAMP				NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (userID, tweetID),
-	FOREIGN KEY (userID) REFERENCES User(userID),
-	FOREIGN KEY (tweetID) REFERENCES Tweet(tweetID)
+	FOREIGN KEY (userID) REFERENCES Users(userID),
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID)
 );
 
 CREATE TABLE Mentions (
 	tweetID INTEGER 				NOT NULL,
 	userID INTEGER 					NOT NULL,
 	PRIMARY KEY (tweetID, userID),
-	FOREIGN KEY (tweetID) REFERENCES Tweet(tweetID),
-	FOREIGN KEY (userID) REFERENCES User(userID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID),
+	FOREIGN KEY (userID) REFERENCES Users(userID)
 );
 
 CREATE TABLE Favorites (
 	tweetID INTEGER 				NOT NULL,
 	userID INTEGER 					NOT NULL,
 	PRIMARY KEY (tweetID, userID),
-	FOREIGN KEY (tweetID) REFERENCES Tweet(tweetID),
-	FOREIGN KEY (userID) REFERENCES User(userID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID),
+	FOREIGN KEY (userID) REFERENCES Users(userID)
 );
 
-CREATE TABLE CanSee (
+CREATE TABLE CanSees (
 	tweetID INTEGER				 	NOT NULL,
 	userID INTEGER 					NOT NULL,
 	PRIMARY KEY (tweetID, userID),
-	FOREIGN KEY (tweetID) REFERENCES Tweet(tweetID),
-	FOREIGN KEY (userID) REFERENCES User(userID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID),
+	FOREIGN KEY (userID) REFERENCES Users(userID)
 );
 
-CREATE TABLE Message (
+CREATE TABLE Messages (
 	messageID INTEGER				NOT NULL AUTO_INCREMENT,
 	senderID INTEGER 				NOT NULL,
 	receiverID INTEGER	 			NOT NULL,
 	content VARCHAR(140)			NOT NULL,
 	dateTime TIMESTAMP			 	NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (messageID),
-	FOREIGN KEY (senderID) REFERENCES User(userID),
-	FOREIGN KEY (receiverID) REFERENCES User(userID)
+	FOREIGN KEY (senderID) REFERENCES Users(userID),
+	FOREIGN KEY (receiverID) REFERENCES Users(userID)
 );
 
-CREATE TABLE Location (
+CREATE TABLE Locations (
 	city VARCHAR(100)				NOT NULL,
 	state VARCHAR(50)				NOT NULL,
 	PRIMARY KEY (city, state)
 );
 
-CREATE TABLE Poll (
+CREATE TABLE Polls (
 	pollID 			INTEGER 					NOT NULL AUTO_INCREMENT,
 	tweetID 		INTEGER 				NOT NULL,
 	pollOptionText 	VARCHAR(300),
 	PRIMARY KEY (pollID),
-	FOREIGN KEY (tweetID) REFERENCES Tweet(tweetID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID)
 );

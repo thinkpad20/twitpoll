@@ -3,6 +3,7 @@ DROP TABLE Mentions;
 DROP TABLE Retweets;
 DROP TABLE Favorites;
 DROP TABLE Follows;
+DROP TABLE ContainsHashtag;
 DROP TABLE HashTag;
 DROP TABLE Message;
 DROP TABLE Poll;

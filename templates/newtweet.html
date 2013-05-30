@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<h2>New Tweet</h2>
+<form name="newtweet" method="post" action="/tweets/new">
+	<textarea name="content" class="textarea" rows="5"></textarea>
+	<button class="btn" type="submit">Tweet!</button>
+</form>
+
+{% endblock %}
