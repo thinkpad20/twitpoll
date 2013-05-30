@@ -61,4 +61,7 @@ def hello():
 	return ret
 
 if __name__ == "__main__":
-	app.run(debug=True)
+	debug = False
+	if "DEBUG" in os.environ: debug = True
+	port = int(os.environ.get("PORT", 5000))
+	app.run(debug=debug, port=port)
