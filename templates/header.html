@@ -1,15 +1,18 @@
 <div class="masthead">
-  <h3 class="muted">TwittyMcTweet</h3>
+    <p class="muted text-right">{% if logged_in %}You are logged in as {{ user_name }}
+                                 {% else %}You are not logged in. <a href="/login">log in</a>
+                                           or <a href="/signup">sign up</a> now.
+                                 {% endif %}</p>
   <div class="navbar">
     <div class="navbar-inner">
       <div class="container">
         <ul class="nav">
-          <li class="active"><a href="#">Home</a></li>
-          <li><a href="#">Projects</a></li>
-          <li><a href="#">Services</a></li>
-          <li><a href="#">Downloads</a></li>
-          <li><a href="#">About</a></li>
-          <li><a href="#">Contact</a></li>
+          <li class="{{ navclass["home"] }}"><a href="/">Home</a></li>
+          <li class="{{ navclass["tweets"] }}"><a href="/tweets">Latest Tweets</a></li>
+          <li class="{{ navclass["users"] }}"><a href="/users">{{site_name}} Users</a></li>
+          <li class="{{ navclass["tweet"] }}"><a href="/tweet">Write Tweet</a></li>
+          <li class="{{ navclass["search"] }}"><a href="/search">Search</a></li>
+          <li class="{{ navclass["contact"] }}"><a href="/contact">Contact</a></li>
         </ul>
       </div>
     </div>
