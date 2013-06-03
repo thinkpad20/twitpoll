@@ -61,7 +61,7 @@ class User(object):
 		return username_r[0]['userID']
 
 	@staticmethod
-	def get(limit):
+	def get(limit = None):
 		q = "select * from Users"
 		if limit: q += " order by userID desc limit " + str(limit)
 		data = sql_search(q)
@@ -177,7 +177,7 @@ class Tweet(object):
 		return res
 
 	@staticmethod
-	def get(limit):
+	def get(limit = None):
 		q = "select * from Tweets"
 		if limit: q += " order by tweetID desc limit " + str(limit)
 		data = sql_search(q)
