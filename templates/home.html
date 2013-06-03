@@ -20,22 +20,33 @@
 
 <!-- Example row of columns -->
 <div class="row-fluid">
-  <div class="span4">
-    <h2>Heading</h2>
-    <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-    <p><a class="btn" href="#">View details &raquo;</a></p>
+  <div class="span6">
+    <h2>Recent tweets</h2>
+    <table class="table">
+      <tr>
+        <th>User</th><th>Content</th>
+      </tr>
+      {% for tweet in Tweet.get(10) %}
+        <tr>
+          <td>{{ tweet.username() }}</td>
+          <td>{{ tweet.vals['content']|safe }}</td>
+        </tr>
+      {% endfor %}
+    </table>
   </div>
   <div class="span4">
-    <h2>Heading</h2>
-    <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-    <p><a class="btn" href="#">View details &raquo;</a></p>
+    <h2>Recent users</h2>
+    <table class="table">
+      <tr>
+        <th>User</th><th>Join date</th>
+      </tr>
+      {% for user in User.get(10) %}
+        <tr>
+          <td>{{ user.username() }}</td>
+          <td>{{ user.vals['memberSince'] }}</td>
+        </tr>
+      {% endfor %}
+    </table>
  </div>
-  <div class="span4">
-    <h2>Heading</h2>
-    <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa.</p>
-    <p><a class="btn" href="#">View details &raquo;</a></p>
-  </div>
-</div>
-
 
 {% endblock %}

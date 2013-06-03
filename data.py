@@ -59,6 +59,13 @@ class User(object):
 		if len(username_r) == 0:
 			return None
 		return username_r[0]['userID']
+
+	@staticmethod
+	def get(limit):
+		q = "select * from Users"
+		if limit: q += " order by userID desc limit " + str(limit)
+		data = sql_search(q)
+		return [ Tweet(tweetdic) for tweetdic in data ]
 			
 	
 	def attrs_to_display(self):
@@ -170,8 +177,10 @@ class Tweet(object):
 		return res
 
 	@staticmethod
-	def get_all():
-		data = sql_search("select * from Tweets;")
+	def get(limit):
+		q = "select * from Tweets"
+		if limit: q += " order by tweetID desc limit " + str(limit)
+		data = sql_search(q)
 		return [ Tweet(tweetdic) for tweetdic in data ]
 
 	def username(self):

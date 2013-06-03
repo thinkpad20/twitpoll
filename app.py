@@ -6,7 +6,7 @@ from flaskext.mysql import MySQL
 
 app = Flask(__name__)
 app.jinja_env.globals["site_name"] = "TwitPoll"
-app.jinja_env.globals.update(Tweet=Tweet, navclass = {}, \
+app.jinja_env.globals.update(Tweet=Tweet, User=User, navclass = {}, \
 				   get_all_users = get_all_users, get_user_where=get_user_where,\
 				   current_user=current_user, user_logged_in=user_logged_in)
 
