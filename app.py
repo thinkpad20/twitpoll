@@ -6,7 +6,7 @@ from flaskext.mysql import MySQL
 
 app = Flask(__name__)
 app.jinja_env.globals["site_name"] = "TwitPoll"
-app.jinja_env.globals.update(get_tweets = get_tweets, navclass = {}, \
+app.jinja_env.globals.update(Tweet=Tweet, navclass = {}, \
 				   get_all_users = get_all_users, get_user_where=get_user_where,\
 				   current_user=current_user, user_logged_in=user_logged_in)
 
@@ -123,6 +123,15 @@ def tweet():
 		else:
 			errors['general'] = "You are not logged in"
 			return render_template("home.html", error=errors)
+
+@app.route("/hashtags/<content>")
+def show_hashtag(content):
+	hashtag = Hashtag.find_by_content(content)
+	if not hashtag:
+		return redirect(url_for('home'));
+	return render_template("hashtag.html", hashtag=Hashtag.find_by_content(content))
+
+
 
 @app.route("/signout")
 def signout():

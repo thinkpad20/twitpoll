@@ -7,11 +7,11 @@
 	<tr>
 		<th>User</th><th>Time</th><th>Content</th>
 	</tr>
-{% for tweet in get_tweets() %}
+{% for tweet in Tweet.get_all() %}
   <tr>
     <td>{{ tweet.username() }}</td>
     <td>{{ tweet.vals['dateTime'] }}</td>
-    <td>{{ tweet.vals['content'] }}</td>
+    <td>{{ tweet.vals['content']|safe }}</td>
   </tr>
 {% endfor %}
 </table>

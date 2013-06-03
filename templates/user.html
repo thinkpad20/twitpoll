@@ -6,9 +6,20 @@
 <table class="table">
 	{% for key in user.attrs_to_display() %}
 	  <tr>
-	    <td> {{key }}: </td><td> {{ user.vals[key] }} </td>
+	    <td> {{ key }}: </td><td> {{ user.vals[key] }} </td>
 	  </tr>
   	{% endfor %}
 </table>
 
+<h2> {{ user.username() }}'s tweets:</h2>
+<table class="table">
+	{% for tweet in user.tweets() %}
+	  <tr>
+	    <td> <b>{{ tweet.vals['dateTime'] }} </b></td>
+	  </tr>
+	  <tr>
+	  	<td>{{ tweet.vals['content'] | safe }} </td>
+	  </tr>
+  	{% endfor %}
+</table>
 {% endblock %}

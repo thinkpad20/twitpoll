@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<h2>Tweets containing '{{ hashtag.content() }}'</h2>
+
+<table class="table">
+	{% for tweet in hashtag.tweets() %}
+	  <tr>
+	  	<td> <b>{{ tweet.username()}} </b> </td>
+	    <td> <b>{{ tweet.vals['dateTime'] }} </b></td>
+	  </tr>
+	  <tr>
+	  	<td>{{ tweet.vals['content'] | safe }} </td>
+	  </tr>
+  	{% endfor %}
+</table>
+{% endblock %}
