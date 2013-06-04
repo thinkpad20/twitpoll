@@ -1,0 +1,26 @@
+<form name="vote_on_poll" method="post" action="{{ url_for('poll') }}">
+	<table>
+		<tr>
+			<td colspan="2"><b>{{ poll.tweet_text() }}</b></td>
+		</tr>
+		<tr>
+			<th><b>Votes</b></td><th><b>Option</b></td>
+		</tr>
+		{% for option in poll.options %}
+		<tr>
+			<td>
+				{{ poll.votes[option]}}
+			</td>
+			<td>
+				{{ option }}
+			</td>
+		</tr>
+		{% endfor %}
+			<td colspan=2>
+				<center>
+					<input type="submit" value=" Back to vote ">
+				</center>
+			</td>
+		</tr>
+	</table>
+</form>

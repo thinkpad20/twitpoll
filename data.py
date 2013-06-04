@@ -237,6 +237,82 @@ class Hashtag(object):
 		return self.vals['content']
 
 get_hashtags = lambda content: list(set([ word.strip().split()[0] for word in content.split("#")[1:]]))
+
+######## end of class Hashtag #########
+
+
+class Poll(object):
+	def __init__(self, tweet_text, options, votes, pollID):
+		self.text = tweet_text
+		self.options = options
+		self.votes = votes
+		if not votes:
+			
+			q = 
+			set_pollID()
+
+	@staticmethod
+	def make_new(tweetID, tweet_text, options):
+		votes = {}
+		for option in options:
+			votes[option] = 0
+		option_text = ""
+		for option in options:
+			option_text += "(%s###0)" % option
+		q = "insert into Polls (pollOptionText, tweetID) values (%s, %d)" \
+													% (option_text, tweetID)
+		pollID = sql_execute(q)
+		return Poll(tweet_text, options, votes, pollID)
+
+	@staticmethod
+	def parse(text):
+		arr = []
+		dic = {}
+		optionnum, nvotes, i = 0, 0, 0
+		while i < len(text):
+			optionnumtext = ""
+			option = ""
+			numtext = ""
+			if text[i] == '(':
+				i += 1
+
+				while text[i:i+3] != '###':
+					option += text[i]
+					i += 1
+				i += 3
+
+				while text[i] != ')':
+					numtext += text[i]
+					i += 1
+				nvotes = int(numtext)
+
+			arr.append(option)
+			dic[option] = nvotes
+			i += 1
+		return Poll(arr, dic)
+
+	def tweet_text(self):
+		return None
+
+	def set_pollID(self, pollID):
+		self.pollID = pollID
+
+	def get_pollID(self):
+		return self.pollID
+
+	def render_code(self):
+		code = ""
+		for option in self.options:
+			code += "(%s###%d)" % (option, self.votes[option])
+
+	def record_vote(self, index):
+		if index < len(self.options):
+			self.votes[self.options[index]] += 1
+		q = "update Polls set pollOptionText = %s where pollID = %d" \
+									% (add_quotes(render_code()), self.get_pollID())
+		sql_execute(q)
+
+
 get_mentions = lambda content: list(set([ word.strip().split()[0] for word in content.split("@")[1:]]))
 
 def make_tweet(userID, content):

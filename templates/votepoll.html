@@ -1,0 +1,23 @@
+<form name="vote_on_poll" method="post" action="{{ url_for('poll') }}">
+	<table>
+		<tr>
+			<td colspan="2"><b>{{ poll.question }}</b></td>
+		</tr>
+		{% for i in range(len(poll.options)) %}
+		<tr>
+			<td width="5">
+				<input type="radio" name="answer" value="{{i}}" id="answer{{i}}">
+			</td>
+			<td>
+				<label for="answer{{i}}">{{ poll.options[i] }}</label>
+			</td>
+		</tr>
+		{% endfor %}
+			<td colspan=2>
+				<center>
+					<input type="submit" value=" Vote ">&nbsp;&nbsp;<input type="submit" name="view_poll" value=" View ">
+				</center>
+			</td>
+		</tr>
+	</table>
+</form>
