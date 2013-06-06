@@ -3,8 +3,8 @@
 {% endif %}
 
 <div class="masthead">
-    <p class="muted text-right">{% if user_logged_in() %}You are logged in as {{ current_user().username() }}.
-                                  <a href="{{ url_for('user_profile', userid=current_user().userID()) }}">my profile</a> |
+    <p class="muted text-right">{% if User.logged_in() %}You are logged in as {{ User.current().username() }}.
+                                  <a href="{{ url_for('user_profile', userid=User.current().userID()) }}">my profile</a> |
                                   <a href="{{ url_for('signout') }}">sign out</a>
                                  {% else %}You are not signed in. <a href="{{url_for('signin')}}">sign in</a>
                                            or <a href="/signup">sign up</a> now.
@@ -16,7 +16,7 @@
           <li class="{{ navclass["home"] }}"><a href="/">Home</a></li>
           <li class="{{ navclass["tweets"] }}"><a href="/tweets">Latest Tweets</a></li>
           <li class="{{ navclass["users"] }}"><a href="/users">{{site_name}} Users</a></li>
-          {% if user_logged_in() %}
+          {% if User.logged_in() %}
             <li class="{{ navclass["newtweet"] }}"><a href="/tweets/new">Write Tweet</a></li>
           {% endif %}
           <!-- <li class="{{ navclass["hashtags"] }}"><a href="/hashtags">Hashtags</a></li>

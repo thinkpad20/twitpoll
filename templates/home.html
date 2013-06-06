@@ -6,10 +6,10 @@
 <div class="jumbotron">
   <h1>{{ site_name }}</h1>
   <p class="lead">Watch out Twitter... a newer and (not) better version of you is coming to get you!</p>
-  {% if user_logged_in() %}
+  {% if User.logged_in() %}
   <a class="btn btn-large btn-success" 
       href="{{ url_for('user_profile', userid=current_user().userID()) }}">
-      Welcome back, {{ current_user().username() }}!
+      Welcome back, {{ User.current().username() }}!
   </a>
   {% else %}
   <a class="btn btn-large btn-success" href="/signup">Join Now!</a>

@@ -6,9 +6,7 @@ from flaskext.mysql import MySQL
 
 app = Flask(__name__)
 app.jinja_env.globals["site_name"] = "TwitPoll"
-app.jinja_env.globals.update(Tweet=Tweet, User=User, navclass = {}, \
-				   get_all_users = get_all_users, get_user_where=get_user_where,\
-				   current_user=current_user, user_logged_in=user_logged_in)
+app.jinja_env.globals.update(Tweet=Tweet, User=User, navclass = {})
 
 #####################################################
 ################# DATABASE SETUP ####################
@@ -109,16 +107,16 @@ def show_tweets():
 def tweet():
 	set_active("newtweet")
 	if request.method == "GET":
-		if user_logged_in():
+		if User.logged_in():
 			return render_template("newtweet.html")
 		else:
 			return redirect(url_for("signup"))
 	elif request.method == "POST":
 		content = request.form.get("content", "")
 		errors = {}
-		if user_logged_in():
-			userid = current_user().userID()
-			make_tweet(userid, content)
+		if User.logged_in():
+			userid = User.current().userID()
+			Tweet.make(userid, content)
 			return redirect(url_for('user_tweets', userid=userid))
 		else:
 			errors['general'] = "You are not logged in"

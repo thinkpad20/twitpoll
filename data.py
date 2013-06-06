@@ -85,10 +85,10 @@ class User(object):
 
 	@staticmethod
 	def all():
-		return where()
+		return User.where()
 	
 	@staticmethod
-	def is_logged_in():
+	def logged_in():
 		return 'username' in session
 
 	@staticmethod
@@ -199,6 +199,18 @@ class Tweet(object):
 		if limit: q += " order by tweetID desc limit " + str(limit)
 		data = sql_search(q)
 		return [ Tweet(tweetdic) for tweetdic in data ]
+
+	@staticmethod
+	def make(userID, content):
+		if not user_logged_in(): return
+		print "Making a new tweet"
+		q = "insert into Tweets (userID, content) values (%s, '%s')" % (str(userID), content)
+		tweetID = sql_execute(q)
+		print "Hashtags:", Hashtag.detect_from_tweet(content)
+		for hashtag in Hashtag.detect_from_tweet(content):
+			Hashtag.insert_hashtag(tweetID, hashtag)
+		# for mention in get_mentions(content):
+		# 	make_hashtag(tweetID, hashtag)
 
 	def username(self):
 		user = sql_search("select * from Users where userID=%s" % str(self.vals['userID']))[0]
