@@ -29,12 +29,28 @@ class User(object):
 		self.vals = userdic
 
 	@staticmethod
+	def current():
+		print "getting current user"
+		res = User.find_by_username(session['username'])
+		return res
+
+	@staticmethod
 	def find_by_username(username):
 		found = sql_search("select * from Users where username = " + add_quotes(username))
 		if len(found) > 0 and found[0]: 
 			return User(found[0])
 		else: 
 			return None
+
+	@staticmethod
+	def where(tbl = None):
+		q = "select * from Users"
+		if tbl:
+			q += " where"
+			for key in tbl.keys():
+				q += " %s = '%s'" % (key, tbl[key])
+		q += ";"
+		return sql_search(q)
 
 	@staticmethod
 	def find_by_id(userID):
@@ -66,8 +82,34 @@ class User(object):
 		if limit: q += " order by userID desc limit " + str(limit)
 		data = sql_search(q)
 		return [ Tweet(tweetdic) for tweetdic in data ]
-			
+
+	@staticmethod
+	def all():
+		return where()
 	
+	@staticmethod
+	def is_logged_in():
+		return 'username' in session
+
+	@staticmethod
+	def validate_new(username, password, email):
+		user = User.find_by_username(username)
+		print "User: ", user
+		if not user:
+			return None
+		else:
+			print "This user already exists: ", user
+			return { "username":"already exists", "general":"Error creating new user account"}
+
+	@staticmethod
+	def add(username, password, email):
+		error = validate_new_user(username, password, email)
+		if error:
+			return error
+		q = "insert into Users (username, passwordHash, email) values ('%s', '%s', '%s')" \
+															% (username, password, email)
+		return sql_execute(q)
+
 	def attrs_to_display(self):
 		return ["username", "fullName", "email", "tagline"]
 
@@ -91,44 +133,19 @@ class User(object):
 	def tweets(self):
 		return Tweet.by_userID(self.userID()) 
 
+	def followers(self):
+		return []
+
+	def followees(self):
+		return []
+
+	def add_follower(self, userID):
+		return
+
+	def unfollow(self, userID):
+		return
+
 ####### end of class User #######
-
-def current_user():
-	res = User.find_by_username(session['username'])
-	print "Here's what we found: ", res
-	return res
-
-def get_user_where(tbl = None):
-	q = "select * from Users"
-	if tbl:
-		q += " where"
-		for key in tbl.keys():
-			q += " %s = '%s'" % (key, tbl[key])
-	q += ";"
-	return sql_search(q)
-
-def get_all_users():
-	return get_user_where()
-
-def user_logged_in():
-	return 'username' in session
-
-def validate_new_user(username, password, email):
-	user = User.find_by_username(username)
-	print "User: ", user
-	if not user:
-		return None
-	else:
-		print "This user already exists: ", user
-		return { "username":"already exists", "general":"Error creating new user account"}
-
-def add_user(username, password, email):
-	error = validate_new_user(username, password, email)
-	if error:
-		return error
-	q = "insert into Users (username, passwordHash, email) values ('%s', '%s', '%s')" \
-														% (username, password, email)
-	sql_execute(q)
 
 #### TWEETS ####
 
@@ -224,6 +241,10 @@ class Hashtag(object):
 		sql_execute("insert into ContainsHashtag (content, tweetID) values (%s, %d);" % \
 														(add_quotes(content), tweetID))
 
+	@staticmethod
+	def detect_from_tweet(content):
+		return list(set([ word.strip().split()[0] for word in content.split("#")[1:]]))
+
 	def tweets(self):
 		found = sql_search("select t.content, t.userID, t.dateTime "
 						   "from Tweets t "
@@ -246,10 +267,7 @@ class Poll(object):
 		self.text = tweet_text
 		self.options = options
 		self.votes = votes
-		if not votes:
-			
-			q = 
-			set_pollID()
+		set_pollID(pollID)
 
 	@staticmethod
 	def make_new(tweetID, tweet_text, options):
@@ -292,7 +310,7 @@ class Poll(object):
 		return Poll(arr, dic)
 
 	def tweet_text(self):
-		return None
+		return self.tweet_text
 
 	def set_pollID(self, pollID):
 		self.pollID = pollID
@@ -320,8 +338,8 @@ def make_tweet(userID, content):
 	print "Making a new tweet"
 	q = "insert into Tweets (userID, content) values (%s, '%s')" % (str(userID), content)
 	tweetID = sql_execute(q)
-	print "Hashtags:", get_hashtags(content)
-	for hashtag in get_hashtags(content):
+	print "Hashtags:", Hashtag.detect_from_tweet(content)
+	for hashtag in Hashtag.detect_from_tweet(content):
 		Hashtag.insert_hashtag(tweetID, hashtag)
 	# for mention in get_mentions(content):
 	# 	make_hashtag(tweetID, hashtag)
