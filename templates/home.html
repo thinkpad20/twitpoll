@@ -8,7 +8,7 @@
   <p class="lead">Watch out Twitter... a newer and (not) better version of you is coming to get you!</p>
   {% if User.logged_in() %}
   <a class="btn btn-large btn-success" 
-      href="{{ url_for('user_profile', userid=current_user().userID()) }}">
+      href="{{ url_for('user_profile', userid=User.current().userID()) }}">
       Welcome back, {{ User.current().username() }}!
   </a>
   {% else %}

@@ -1,0 +1,29 @@
+<style>
+/*#option_button {
+  background: #6292c2;
+  border: 2px solid #eee;
+  height: 28px;
+  width: 115px;
+  margin: 50px 0 0 50px;
+  padding: 0 0 0 7px;
+  overflow: hidden;
+  display: block;
+}*/
+</style>
+
+<table id="viewPoll">
+	<tr>
+	<form name="pollvote" method="post" action="/poll/{{poll.get_pollID()}}">
+	{% for i in range(len(poll.options)) %}
+		<td>
+			{{ poll.votes[poll.options[i]]}}
+		</td>
+		<td>
+			<button type="submit" class="option_button" name="option_num" value="{{i}}">
+				{{ poll.options[i] }}
+			</button>
+		</td>
+	{% endfor %}
+	</form>
+	</tr>
+</table>

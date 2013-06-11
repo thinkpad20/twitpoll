@@ -9,7 +9,9 @@ def sql_search(q):
 	print "SQL QUERY:", q
 	cursor = g.db.cursor()
 	num_results = cursor.execute(q)
-	return data_from_cursor(cursor)
+	res = data_from_cursor(cursor)
+	print "RESULTS:", res
+	return res
 
 def sql_execute(q):
 	if q[-1] != ';': q += ';'
@@ -17,7 +19,9 @@ def sql_execute(q):
 	cursor = g.db.cursor()
 	cursor.execute(q)
 	g.db.commit()
-	return cursor.lastrowid
+	res = cursor.lastrowid
+	print "RESULT LAST ROWID:", res
+	return res
 
 add_quotes = lambda s : '"' + s + '"'
 
@@ -103,12 +107,12 @@ class User(object):
 
 	@staticmethod
 	def add(username, password, email):
-		error = validate_new_user(username, password, email)
-		if error:
-			return error
+		error = User.validate_new(username, password, email)
+		if error: return error
 		q = "insert into Users (username, passwordHash, email) values ('%s', '%s', '%s')" \
 															% (username, password, email)
-		return sql_execute(q)
+		res = sql_execute(q)
+		return None
 
 	def attrs_to_display(self):
 		return ["username", "fullName", "email", "tagline"]
@@ -134,10 +138,16 @@ class User(object):
 		return Tweet.by_userID(self.userID()) 
 
 	def followers(self):
-		return []
+		q = ("select * from Users follower, Users followee, Followers f "
+			"where follower.userID = f.follower "
+			"and followee.userID = %d") % self.userID()
+		return sql_search(q)
 
 	def followees(self):
-		return []
+		q = ("select * from Users follower, Users followee, Followers f "
+			"where followee.userID = f.follower "
+			"and follower.userID = %d") % self.userID()
+		return sql_search(q)
 
 	def add_follower(self, userID):
 		return
@@ -201,16 +211,26 @@ class Tweet(object):
 		return [ Tweet(tweetdic) for tweetdic in data ]
 
 	@staticmethod
-	def make(userID, content):
-		if not user_logged_in(): return
+	def make(userID, content, polloptions = []):
+		if not User.logged_in(): return
+		has_poll = 1 if len(polloptions) > 0 else 0
 		print "Making a new tweet"
-		q = "insert into Tweets (userID, content) values (%s, '%s')" % (str(userID), content)
+		q = "insert into Tweets (userID, content, hasPoll) values (%s, '%s', %d)" \
+												% (str(userID), content, has_poll)
 		tweetID = sql_execute(q)
-		print "Hashtags:", Hashtag.detect_from_tweet(content)
-		for hashtag in Hashtag.detect_from_tweet(content):
+		if has_poll == 1:
+			print "User submitted a tweet with a poll! Options are:", polloptions
+			Poll.make_new(tweetID, content, polloptions)
+		for hashtag in Hashtag.detect(content):
 			Hashtag.insert_hashtag(tweetID, hashtag)
-		# for mention in get_mentions(content):
-		# 	make_hashtag(tweetID, hashtag)
+		for mention in Mention.detect(content):
+			Mention.insert_mention(tweetID, hashtag)
+
+	def has_poll(self):
+		return self.vals['hasPoll'] != 0
+
+	def poll(self):
+		return Poll.lookup_from_tweet(self.vals['tweetID'])
 
 	def username(self):
 		user = sql_search("select * from Users where userID=%s" % str(self.vals['userID']))[0]
@@ -254,32 +274,29 @@ class Hashtag(object):
 														(add_quotes(content), tweetID))
 
 	@staticmethod
-	def detect_from_tweet(content):
-		return list(set([ word.strip().split()[0] for word in content.split("#")[1:]]))
+	def detect(tweet_content):
+		return list(set([ word.strip().split()[0] for word in tweet_content.split("#")[1:]]))
 
 	def tweets(self):
-		found = sql_search("select t.content, t.userID, t.dateTime "
+		found = sql_search(("select t.content, t.userID, t.dateTime "
 						   "from Tweets t "
 						   "inner join ContainsHashtag ch "
 						   "on t.tweetID = ch.tweetID "
-						   "where ch.content = %s;" % add_quotes(self.vals['content']))
+						   "where ch.content = %s;") % add_quotes(self.vals['content']))
 		print "FOUND: ", found
 		return [ Tweet(tweet) for tweet in found ]
 
 	def content(self):
 		return self.vals['content']
 
-get_hashtags = lambda content: list(set([ word.strip().split()[0] for word in content.split("#")[1:]]))
-
 ######## end of class Hashtag #########
-
 
 class Poll(object):
 	def __init__(self, tweet_text, options, votes, pollID):
 		self.text = tweet_text
 		self.options = options
 		self.votes = votes
-		set_pollID(pollID)
+		self.set_pollID(pollID)
 
 	@staticmethod
 	def make_new(tweetID, tweet_text, options):
@@ -290,9 +307,23 @@ class Poll(object):
 		for option in options:
 			option_text += "(%s###0)" % option
 		q = "insert into Polls (pollOptionText, tweetID) values (%s, %d)" \
-													% (option_text, tweetID)
+													% (add_quotes(option_text), tweetID)
 		pollID = sql_execute(q)
 		return Poll(tweet_text, options, votes, pollID)
+
+	@staticmethod
+	def lookup_from_tweet(tweetID):
+		q = ("select p.*, t.content from Polls p "
+			"inner join Tweets t "
+			"on p.tweetID = t.tweetID "
+			"where t.tweetID = %d") % tweetID
+		res = sql_search(q)[0] if sql_search(q) else []
+		print "lookup_from_tweet res:", res
+		if res:
+			tweet_text = res['content']
+			options, votes = Poll.parse(res['pollOptionText'])
+			pollID = res['pollID']
+			return Poll(tweet_text, options, votes, pollID)
 
 	@staticmethod
 	def parse(text):
@@ -319,7 +350,7 @@ class Poll(object):
 			arr.append(option)
 			dic[option] = nvotes
 			i += 1
-		return Poll(arr, dic)
+		return (arr, dic)
 
 	def tweet_text(self):
 		return self.tweet_text
@@ -343,15 +374,45 @@ class Poll(object):
 		sql_execute(q)
 
 
-get_mentions = lambda content: list(set([ word.strip().split()[0] for word in content.split("@")[1:]]))
+class Mention(object):
+	@staticmethod
+	def find_by_id(userID):
+		return sql_search("select * from Mentions where userID = %d;" % int(userID))
 
-def make_tweet(userID, content):
-	if not user_logged_in(): return
-	print "Making a new tweet"
-	q = "insert into Tweets (userID, content) values (%s, '%s')" % (str(userID), content)
-	tweetID = sql_execute(q)
-	print "Hashtags:", Hashtag.detect_from_tweet(content)
-	for hashtag in Hashtag.detect_from_tweet(content):
-		Hashtag.insert_hashtag(tweetID, hashtag)
-	# for mention in get_mentions(content):
-	# 	make_hashtag(tweetID, hashtag)
+	@staticmethod
+	def find_by_username(username):
+		mentions = ("select * from Mentions m where m.userID in ("
+					   "select u.userID from Users u "
+					   "where u.username = %s") % add_quotes(username)
+		return sql_search(mentions)
+
+	@staticmethod
+	def insert(tweetID, username):
+		user = User.find_by_username(username)
+		if not user: return
+		sql_execute("insert into Mentions (userID, tweetID) values (%d, %d);" % \
+														(user.userID(), tweetID))
+
+	@staticmethod
+	def detect(tweet_content):
+		return list(set([ word.strip().split()[0] for word in tweet_content.split("@")[1:]]))
+
+	@staticmethod
+	def tweets_by_userID(userID):
+		found = sql_search(("select t.content, t.userID, t.dateTime "
+						   "from Tweets t "
+						   "inner join Mentions m "
+						   "on t.tweetID = m.tweetID "
+						   "where m.userID = %d") % userID)
+		return [ Tweet(tweet) for tweet in found ]
+
+	@staticmethod
+	def tweets_by_username(username):
+		found = sql_search(("select t.content, t.userID, t.dateTime "
+						   "from Tweets t "
+						   "inner join Mentions m "
+						   "on t.tweetID = m.tweetID "
+						   "where m.userID in ("
+						   "select u.userID from Users u "
+						   "where u.username = %s limit 1)") % add_quotes(username))
+		return [ Tweet(tweet) for tweet in found ]

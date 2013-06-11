@@ -6,7 +6,7 @@ from flaskext.mysql import MySQL
 
 app = Flask(__name__)
 app.jinja_env.globals["site_name"] = "TwitPoll"
-app.jinja_env.globals.update(Tweet=Tweet, User=User, navclass = {})
+app.jinja_env.globals.update(Tweet=Tweet, User=User, navclass = {}, type=type, len=len)
 
 #####################################################
 ################# DATABASE SETUP ####################
@@ -61,10 +61,10 @@ def users():
 		passwordconf = request.form.get("passwordconf", "")
 		email = request.form.get("email", "")
 		
-		error = None
+		error = {}
 		if username and password and email and password == passwordconf:
-			error = add_user(username, password, email)
-			if error is None:
+			error = User.add(username, password, email)
+			if not error:
 				session["username"] = username
 				return render_template("users.html", messages = {'general': 'welcome to TwitPoll!'})
 			else:
@@ -113,10 +113,15 @@ def tweet():
 			return redirect(url_for("signup"))
 	elif request.method == "POST":
 		content = request.form.get("content", "")
+		polloptions = []
+		for i in range(1, 7):
+			op = 'option' + str(i) 
+			if op in request.form and request.form[op] != "":
+				polloptions.append(request.form[op])
 		errors = {}
 		if User.logged_in():
 			userid = User.current().userID()
-			Tweet.make(userid, content)
+			Tweet.make(userid, content, polloptions)
 			return redirect(url_for('user_tweets', userid=userid))
 		else:
 			errors['general'] = "You are not logged in"
@@ -129,7 +134,8 @@ def show_hashtag(content):
 		return redirect(url_for('home'));
 	return render_template("hashtag.html", hashtag=Hashtag.find_by_content(content))
 
-
+@app.route("/poll/<pollID>", methods=["POST"])
+def make_vote()
 
 @app.route("/signout")
 def signout():

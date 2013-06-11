@@ -12,6 +12,13 @@
     <td>{{ tweet.username() }}</td>
     <td>{{ tweet.vals['dateTime'] }}</td>
     <td>{{ tweet.vals['content']|safe }}</td>
+    <td>
+    	{% if tweet.has_poll() %}
+    	{% with poll=tweet.poll() %}
+    	{% include "poll_mini.html" %}
+    	{% endwith %}
+    	{% endif %}
+    </td>
   </tr>
 {% endfor %}
 </table>

@@ -2,10 +2,105 @@
 
 {% block main %}
 
+<script>
+var pbox_vis = 0;
+var add_option = function() {
+	var toswitch = "#poll" + (pbox_vis + 1);
+	if (pbox_vis < 6) {
+		if (pbox_vis == 0) { $('#first_option').hide(); } 
+		else { $('#buttons' + pbox_vis).hide(); }
+
+		pbox_vis += 1;
+		$('#poll' + pbox_vis).show();
+	}
+};
+
+var remove_option = function() {
+	if (pbox_vis > 0) {
+		$('#poll' + pbox_vis).hide();
+		$('#option' + pbox_vis + 'text').val("")
+		pbox_vis = pbox_vis - 1;
+	}
+	if (pbox_vis == 0) {
+		$('#first_option').show();
+	} else {
+		$('#buttons' + pbox_vis).show();
+	}
+};
+
+var toggle_poll = function() {
+	if (pbox_vis) {
+		$('#poll_box').hide();
+		pbox_vis = false;
+	} else {
+		$('#poll_box').show();
+		pbox_vis = true;
+	}
+};
+
+</script>
+
+<div align="center">
 <h2>New Tweet</h2>
 <form name="newtweet" method="post" action="/tweets/new">
-	<textarea name="content" class="textarea" rows="5"></textarea>
-	<button class="btn" type="submit">Tweet!</button>
+	<table id = "nt_table">
+		<tr>
+			<td colspan="2">
+				<textarea name="content" class="textarea" rows="5" cols="10"></textarea>
+			</td>
+		</tr>
+		<tr id="poll1" style="display:none">
+			<td><input type="text" name="option1" id="option1text"></td>
+			<td>
+				<div id="buttons1">
+					<button class="btn" onclick="add_option()" type="button">Add</button>
+					<button class="btn" onclick="remove_option()" type="button">Remove</button>
+				</div>
+			</td>
+		</tr>
+		<tr id="poll2" style="display:none">
+			<td><input type="text" name="option2" id="option2text"></td>
+			<td>
+				<div id="buttons2">
+					<button class="btn" onclick="add_option()" type="button">Add</button>
+					<button class="btn" onclick="remove_option()" type="button">Remove</button>
+				</div>
+			</td>
+		</tr>
+		<tr id="poll3" style="display:none">
+			<td><input type="text" name="option3" id="option3text"></td>
+			<td>
+				<div id="buttons3">
+					<button class="btn" onclick="add_option()" type="button">Add</button>
+					<button class="btn" onclick="remove_option()" type="button">Remove</button>
+				</div>
+			</td>
+		</tr>
+		<tr id="poll4" style="display:none">
+			<td><input type="text" name="option4" id="option4text"></td>
+			<td>
+				<div id="buttons4">
+					<button class="btn" onclick="add_option()" type="button">Add</button>
+					<button class="btn" onclick="remove_option()" type="button">Remove</button>
+				</div>
+			</td>
+		</tr>
+		<tr id="poll5" style="display:none">
+			<td><input type="text" name="option5" id="option5text"></td>
+			<td>
+				<div id="buttons5">
+					<button class="btn" onclick="remove_option()" type="button">Remove</button>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td class="text-center">
+				<button class="btn" type="submit">Tweet!</button>
+				<button class="btn" id="first_option" onclick="add_option()" type="button">Add a poll</button>
+			</td>
+		</tr>
+	</table>	
 </form>
+</div>
 
 {% endblock %}

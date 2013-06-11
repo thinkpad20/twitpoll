@@ -1,4 +1,4 @@
-{% if 'general' in error %}
+{% if type(error) == dict and 'general' in error %}
 <p class = "text-center text-error">{{error['general']}}</p>
 {% endif %}
 
@@ -19,8 +19,6 @@
           {% if User.logged_in() %}
             <li class="{{ navclass["newtweet"] }}"><a href="/tweets/new">Write Tweet</a></li>
           {% endif %}
-          <!-- <li class="{{ navclass["hashtags"] }}"><a href="/hashtags">Hashtags</a></li>
-          <li class="{{ navclass["search"] }}"><a href="/search">Search</a></li> -->
         </ul>
       </div>
     </div>
