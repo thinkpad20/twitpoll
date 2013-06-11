@@ -149,11 +149,14 @@ class User(object):
 			"and follower.userID = %d") % self.userID()
 		return sql_search(q)
 
-	def add_follower(self, userID):
-		return
+	def follow(self, userID):
+		q = "insert into Follows (follower, followee) values (%d, %d)" % (self.userID(), userID)
+		return sql_execute(q)
 
 	def unfollow(self, userID):
-		return
+		q = "remove from Follows f where f.follower = %d and f.followee = %d" \
+												% (self.userID(), userID)
+		return sql_execute(q)
 
 ####### end of class User #######
 
@@ -177,7 +180,7 @@ class Tweet(object):
 	def find_by_id(tweetID):
 		found = sql_search("select * from Tweets where tweetID = " + str(tweetID))
 		if len(found) > 0 and found[0]: 
-			return User(found[0])
+			return Tweet(found[0])
 		else: 
 			return None
 
@@ -188,6 +191,7 @@ class Tweet(object):
 
 	@staticmethod
 	def render_content(content):
+		content = content.replace("|", "'").replace("_", '"')
 		words = content.split(" ")
 		res = ""
 		for word in words:
@@ -213,10 +217,11 @@ class Tweet(object):
 	@staticmethod
 	def make(userID, content, polloptions = []):
 		if not User.logged_in(): return
+		print "polloptions:", polloptions, "length:", len(polloptions)
 		has_poll = 1 if len(polloptions) > 0 else 0
 		print "Making a new tweet"
 		q = "insert into Tweets (userID, content, hasPoll) values (%s, '%s', %d)" \
-												% (str(userID), content, has_poll)
+											% (str(userID), Tweet.escape(content), has_poll)
 		tweetID = sql_execute(q)
 		if has_poll == 1:
 			print "User submitted a tweet with a poll! Options are:", polloptions
@@ -226,11 +231,37 @@ class Tweet(object):
 		for mention in Mention.detect(content):
 			Mention.insert_mention(tweetID, hashtag)
 
+	@staticmethod
+	def delete(tweetID):
+		q = "remove from Tweets where tweetID = %d" % int(tweetID)
+		return sql_execute(q)
+
+	@staticmethod
+	def search(keyword):
+		q = "select * from Tweets where content like \"%" + keyword + "%\")"
+		return [Tweet(tweet) for tweet in sql_search(q)]
+
+	@staticmethod
+	def escape(strng):
+		res = strng.replace("'", "|").replace('"', "_")
+		return res
+
 	def has_poll(self):
-		return self.vals['hasPoll'] != 0
+		poll = Poll.find_by_tweet(self.vals['tweetID'])
+		if poll is not None:
+			self.poll_cache = poll
+			return True
+		else:
+			self.poll_cache = None
+			return False
 
 	def poll(self):
-		return Poll.lookup_from_tweet(self.vals['tweetID'])
+		if self.poll_cache:
+			return self.poll_cache
+		else:
+			res = Poll.find_by_tweet(self.vals['tweetID'])
+			if not res: print "Warning!! Poll was not found!"
+			return res
 
 	def username(self):
 		user = sql_search("select * from Users where userID=%s" % str(self.vals['userID']))[0]
@@ -312,18 +343,34 @@ class Poll(object):
 		return Poll(tweet_text, options, votes, pollID)
 
 	@staticmethod
-	def lookup_from_tweet(tweetID):
+	def find_by_id(pollID):
+		q = ("select p.*, t.content from Polls p "
+			"inner join Tweets t "
+			"on p.tweetID = t.tweetID "
+			"where p.pollID = %d") % int(pollID)
+		res = sql_search(q)
+		if res:
+			res = res[0]
+			tweet_text = res['content']
+			options, votes = Poll.parse(res['pollOptionText'])
+			pollID = res['pollID']
+			return Poll(tweet_text, options, votes, pollID)
+		else: return None
+
+
+	@staticmethod
+	def find_by_tweet(tweetID):
 		q = ("select p.*, t.content from Polls p "
 			"inner join Tweets t "
 			"on p.tweetID = t.tweetID "
 			"where t.tweetID = %d") % tweetID
 		res = sql_search(q)[0] if sql_search(q) else []
-		print "lookup_from_tweet res:", res
 		if res:
 			tweet_text = res['content']
 			options, votes = Poll.parse(res['pollOptionText'])
 			pollID = res['pollID']
 			return Poll(tweet_text, options, votes, pollID)
+		else: return None
 
 	@staticmethod
 	def parse(text):
@@ -352,6 +399,12 @@ class Poll(object):
 			i += 1
 		return (arr, dic)
 
+	@staticmethod
+	def vote(pollID, optionnum):
+		poll = Poll.find_by_id(pollID)
+		if poll:
+			poll.record_vote(optionnum)
+
 	def tweet_text(self):
 		return self.tweet_text
 
@@ -365,12 +418,14 @@ class Poll(object):
 		code = ""
 		for option in self.options:
 			code += "(%s###%d)" % (option, self.votes[option])
+		return code
 
 	def record_vote(self, index):
+		index = int(index)
 		if index < len(self.options):
 			self.votes[self.options[index]] += 1
 		q = "update Polls set pollOptionText = %s where pollID = %d" \
-									% (add_quotes(render_code()), self.get_pollID())
+									% (add_quotes(self.render_code()), self.get_pollID())
 		sql_execute(q)
 
 

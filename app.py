@@ -98,10 +98,7 @@ def edit_user(userid):
 @app.route("/tweets")
 def show_tweets():
 	set_active("tweets")
-	if request.method == "GET":
-		return render_template("tweets.html")
-	elif request.method == "POST": # make a new user account		
-		return redirect(url_for("signup"))
+	return render_template("tweets.html")
 
 @app.route("/tweets/new", methods=["GET", "POST"])
 def tweet():
@@ -135,7 +132,13 @@ def show_hashtag(content):
 	return render_template("hashtag.html", hashtag=Hashtag.find_by_content(content))
 
 @app.route("/poll/<pollID>", methods=["POST"])
-def make_vote()
+def make_vote(pollID):
+	if not User.logged_in():
+		return render_template("home.html", error={'general': "You are not logged in"})		
+	if 'option_num' in request.form:
+		num = request.form['option_num']
+		Poll.vote(pollID, num)
+		return render_template("tweets.html")
 
 @app.route("/signout")
 def signout():
