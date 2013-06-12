@@ -2,25 +2,80 @@
 
 {% block main %}
 
-<h2>Latest Tweets</h2>
-<table class="table">
-	<tr>
-		<th>User</th><th>Time</th><th>Content</th>
-	</tr>
-{% for tweet in Tweet.get() %}
-  <tr>
-    <td>{{ tweet.username() }}</td>
-    <td>{{ tweet.vals['dateTime'] }}</td>
-    <td>{{ tweet.vals['content']|safe }}</td>
-    <td>
-    	{% if tweet.has_poll() %}
-    	{% with poll=tweet.poll() %}
-    	{% include "poll_mini.html" %}
-    	{% endwith %}
-    	{% endif %}
-    </td>
-  </tr>
-{% endfor %}
+<style>
+.linkbutton {
+    background:none!important;
+     border:none; 
+     padding:0!important;
+
+    /*border is optional*/
+     /*border-bottom:1px solid #444; */
+}
+
+div.overflow {height: 15px; overflow: hidden;}
+</style>
+
+<table>
+    <tr>
+    	<td>
+		  	<div id="users_area" style="height:500px;width:200px;border:0px solid #ccc;overflow:auto;">
+		  		<h2>TwitPoll users</h2>
+						<table class="table">
+						{% for user in User.all() %}
+							<tr>
+							  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
+							  {% if User.logged_in() %}
+							  <td padding-top="0px">
+						  		{% if User.current().userID() != user.userID() %}
+						  			<a href="/user/follow/{{user.userID()}}?prev=tweets.html">{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}
+										</a>
+									{% endif %}
+								</td>
+								{% endif %}
+							</tr>
+						{% endfor %}
+						</table>
+		  	</div>
+		  </td>
+      <td>
+		    <div id="tweet_area" style="height:500px;width:500px;border:0px solid #ccc;overflow:auto;">
+		    <h2>Recent tweets on TwitPoll:</h2>
+		    <table class="table">
+		    {% for tweet in Tweet.get() %}
+		      <tr>
+		        <td height="15px">
+		        	<div class="overflow">
+		        		<a href="/users/{{tweet.userID()}}">{{ tweet.username() }}</a> tweeted...
+		        	</div>
+		        </td>
+		        <td>
+		        	<div class="overflow">
+		            {% if User.logged_in() and tweet.userID() == User.current().userID() %}
+		            <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
+		                <input type="submit" class="linkbutton" value="delete">
+		            </form>
+		            {% endif %}
+		          </div>
+		        </td>
+		      </tr>
+		      <tr colspan="2">
+		        <td>
+		            {{ tweet.vals['content']|safe }}
+		            <br>
+		            {% if tweet.has_poll() %}
+		                {% with poll=tweet.poll() %}
+		                {% include "poll_mini.html" %}
+		                {% endwith %}
+		            {% endif %}
+		        </td>
+		      </tr>
+		      <tr>
+		      </tr>
+		    {% endfor %}
+		    </table>
+		    </div>
+		  </td>
+		</tr>
 </table>
 
 {% endblock %}

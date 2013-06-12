@@ -13,7 +13,6 @@ DROP TABLE IF EXISTS Favorites;
 -- select "drop Follows" as "Action";
 DROP TABLE IF EXISTS Follows;
 
--- select "drop ContainsHashtag" as "Action";
 DROP TABLE IF EXISTS ContainsHashtag;
 
 -- select "drop Hashtags" as "Action";
@@ -57,8 +56,9 @@ CREATE TABLE Users (
 	state			VARCHAR(50),
 	sex				VARCHAR(10),
 	age				INTEGER,
+	accountActive	INTEGER			NOT NULL DEFAULT 1,
 	memberSince 	TIMESTAMP		NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY (userID)	
+	PRIMARY KEY (userID)
 );
 
 -- select "create Tweets" as "Action";
@@ -69,15 +69,20 @@ CREATE TABLE Tweets (
 	content VARCHAR(140)			NOT NULL,
 	dateTime TIMESTAMP			 	NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	hasPoll INTEGER					NOT NULL,
+	visible INTEGER					NOT NULL DEFAULT 1,
 	PRIMARY KEY (tweetID),
 	FOREIGN KEY (userID) REFERENCES Users(userID)
+	ON DELETE CASCADE
 );
 
 -- select "create Hashtags" as "Action";
 
 CREATE TABLE Hashtags (
+	hashtagID INTEGER				NOT NULL AUTO_INCREMENT,
+	tweetID	INTEGER					NOT NULL,
 	content VARCHAR(140) 			NOT NULL,
-	PRIMARY KEY (content)
+	PRIMARY KEY (hashtagID),
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID)
 );
 
 -- select "create Follows" as "Action";
@@ -121,16 +126,6 @@ CREATE TABLE Favorites (
 	FOREIGN KEY (userID) REFERENCES Users(userID)
 );
 
--- select "create CanSees" as "Action";
-
-CREATE TABLE CanSees (
-	tweetID INTEGER				 	NOT NULL,
-	userID INTEGER 					NOT NULL,
-	PRIMARY KEY (tweetID, userID),
-	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID),
-	FOREIGN KEY (userID) REFERENCES Users(userID)
-);
-
 -- select "create Messages" as "Action";
 
 CREATE TABLE Messages (
@@ -152,14 +147,4 @@ CREATE TABLE Polls (
 	pollOptionText VARCHAR(300),
 	PRIMARY KEY (pollID),
 	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID)
-);
-
--- select "create ContainsHashtag" as "Action";
-
-CREATE TABLE ContainsHashtag (
-	tweetID INTEGER NOT NULL,
-	content VARCHAR(140) NOT NULL,
-	PRIMARY KEY (tweetID, content),
-	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID),
-	FOREIGN KEY (content) REFERENCES Hashtags(content)
 );

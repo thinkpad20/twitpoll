@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+
+
+<table>
+    <tr>
+    	<td>
+		  	<div id="users_area" style="height:500px;width:200px;border:0px solid #ccc;overflow:auto;">
+		  		<h2>users</h2>
+						<table class="table">
+						{% for user in User.all() %}
+							<tr>
+							  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
+							  {% if User.logged_in() %}
+							  <td padding-top="0px">
+						  		{% if User.current().userID() != user.userID() %}
+						  			<a href="/user/follow/{{user.userID()}}?prev=followed_tweets.html">{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}
+										</a>
+									{% endif %}
+								</td>
+								{% endif %}
+							</tr>
+						{% endfor %}
+						</table>
+		  	</div>
+		  </td>
+      <td>
+		    <div id="tweet_area" style="height:500px;width:500px;border:0px solid #ccc;overflow:auto;">
+				<h2>Users you follow tweeted:</h2>
+				<table class="table">
+				{% for tweet in user.followed_tweets() %}
+				  <tr>
+				    <td height="15px">
+				        <div class="overflow">
+				            <a href="/users/{{tweet.userID()}}">{{ tweet.username() }}</a> tweeted...
+				        </div>
+				    </td>
+				    <td>
+				        <div class="overflow">
+				        {% if User.logged_in() and tweet.userID() == User.current().userID() %}
+				        <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
+				            <input type="submit" class="linkbutton" value="delete">
+				        </form>
+				        {% endif %}
+				      </div>
+				    </td>
+				  </tr>
+				  <tr colspan="2">
+				    <td>
+				        {{ tweet.vals['content']|safe }}
+				        <br>
+				        {% if tweet.has_poll() %}
+				            {% with poll=tweet.poll() %}
+				            {% include "poll_mini.html" %}
+				            {% endwith %}
+				        {% endif %}
+				    </td>
+				  </tr>
+				  <tr>
+				  </tr>
+				{% endfor %}
+				</table>
+			</div>
+		</td>
+	</tr>
+</table>
+
+{% endblock %}

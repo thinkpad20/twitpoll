@@ -10,8 +10,18 @@
   </tr>
 {% for user in User.all() %}
 	<tr>
-	  <td>{{ user.username }}</td>
-	  <td>{{ user.email }}</td>
+	  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
+	  <td>{{ user.email() }}</td>
+	  {% if User.logged_in() %}
+	  <td>
+  		{% if User.current().userID() != user.userID() %}
+  			<form action="/user/follow/{{user.userID()}}" method="post">
+					<input type="submit" class="btn" 
+						value="Click here to {{"unfollow" if User.current().is_following(user.userID()) else "follow"}} {{user.username()}}">
+				</form>
+			{% endif %}
+		</td>
+		{% endif %}
 	</tr>
 {% endfor %}
 </table>

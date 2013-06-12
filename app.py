@@ -81,7 +81,7 @@ def users():
 				error['email'] = "Please enter an email address"
 			return render_template("signup.html", error=error)
 
-@app.route("/users/<userid>/")
+@app.route("/users/<userid>")
 def user_profile(userid):
 	return render_template("user.html", user=User.find_by_id(userid))
 
@@ -124,15 +124,65 @@ def tweet():
 			errors['general'] = "You are not logged in"
 			return render_template("home.html", error=errors)
 
+@app.route("/disable/<userID>", methods=["GET", "POST"])
+def disable_account(userID):
+	if not User.exists(userID):
+		return redirect(url_for('error404'))
+	if request.method == "GET":
+		return render_template("disable_confirm.html", user=User.find_by_id(userID))
+	if request.method == "POST":
+		if User.logged_in() and User.current().userID() == int(userID):
+			msg = "Sad to see you go, %s!" % User.current().username()
+			User.disable(userID)
+			return render_template("home.html", error={'general':msg})
+		else:
+			return render_template("home.html", error={'general':'You are not logged in.'})
+
+@app.route("/tweets/delete/<tweetID>", methods=["POST"])
+def delete_tweet(tweetID):
+	if Tweet.find_by_id(tweetID) is not None:
+		Tweet.delete(tweetID)
+	return render_template("tweets.html")
+
+@app.route("/tweets/followedby/<userID>")
+def view_followed_tweets(userID):
+	set_active("followed_tweets")
+	if User.exists(int(userID)):
+		return render_template("followed_tweets.html", user=User.find_by_id(int(userID)))
+	return render_template(url_for('show_tweets'))
+
+@app.route("/user/follow/<userID>", methods=["POST"])
+def follow(userID):
+	if not User.exists(int(userID)):
+		return render_template("home.html", error={"general":\
+						"We're sorry, that user doesn't seem to exist."})
+	user = User.current()
+	userID = int(userID)
+	tofollow = User.find_by_id(userID)
+	if not User.logged_in():
+		return render_template("home.html", error={'general':'You are not logged in.'})
+	msg = ""
+	template = request.args.get("prev", "")
+	if user.is_following(userID):
+		msg = "You are now following " + tofollow.username()
+		user.unfollow(userID)
+		if not template: template = "tweets.html"
+	else:
+		msg = "You have unfollowed " + tofollow.username()
+		user.follow(userID)
+		if not template: template = "tweets.html"
+	return render_template(template, user= tofollow, messages={'general':msg})
+
 @app.route("/hashtags/<content>")
 def show_hashtag(content):
 	hashtag = Hashtag.find_by_content(content)
 	if not hashtag:
 		return redirect(url_for('home'));
-	return render_template("hashtag.html", hashtag=Hashtag.find_by_content(content))
+	return render_template("hashtag.html", hashtag=Hashtag.find_by_content(content)[0])
 
 @app.route("/poll/<pollID>", methods=["POST"])
 def make_vote(pollID):
+	print "someone wants to vote on poll", pollID
 	if not User.logged_in():
 		return render_template("home.html", error={'general': "You are not logged in"})		
 	if 'option_num' in request.form:
@@ -172,6 +222,10 @@ def signin():
 			if not password:
 				error['password'] = "please enter a password"
 			return render_template('signin.html', error=error)
+
+@app.errorhandler(404)
+def error404(error):
+    return render_template('404.html'), 404
 
 if __name__ == "__main__":
 	port = int(os.environ.get("PORT", 5000))

@@ -2,24 +2,132 @@
 
 {% block main %}
 
-<h2>{{ user.username() }}</h2>
-<table class="table">
-	{% for key in user.attrs_to_display() %}
-	  <tr>
-	    <td> {{ key }}: </td><td> {{ user.vals[key] }} </td>
-	  </tr>
-  	{% endfor %}
+<script type="text/javascript">
+var activ = function(id) {
+	var elems = [$('#tweets'), $('#followed_users'), $('#followers')];
+	var hdrs = [$('#tweets_header'), $('#followed_users_header'), $('#followers_header')];
+	var idx = 0;
+	while (idx < elems.length) {
+		var elem = elems[idx];
+		if (elem.attr('id') == id) {
+			elem.show();
+			hdrs[idx].addClass('active');
+		} else {
+			elem.hide();
+			hdrs[idx].removeClass('active');
+		}
+		idx = idx + 1;
+	}
+};
+
+</script>
+
+<table class="text-center">
+	<tr><td width="300"><h3>{{ user.username() }}'s profile</h3></td>
+<td width="300">
+<!-- if user is signed in and is viewing their profile -->
+{% if User.logged_in() and User.current().userID() == user.userID() %}
+
+<a href="#">Edit your profile</a>
+
+<!-- if user is signed in and is viewing someone's profile who they haven't followed -->
+{% elif User.logged_in() and not User.current().is_following(user.userID()) %}
+
+<a href="/user/follow/{{user.userID()}}">Unfollow {{user.username()}}</a>
+
+{% elif User.logged_in() %}
+
+<a href="/user/follow/{{user.userID()}}">Follow {{user.username()}}</a>
+
+{% endif %}
+</td><td width="300">
+<a href="/users">Back to user list</a>
+</td></tr>
 </table>
 
-<h2> {{ user.username() }}'s tweets:</h2>
-<table class="table">
-	{% for tweet in user.tweets() %}
-	  <tr>
-	    <td> <b>{{ tweet.vals['dateTime'] }} </b></td>
-	  </tr>
-	  <tr>
-	  	<td>{{ tweet.vals['content'] | safe }} </td>
-	  </tr>
-  	{% endfor %}
-</table>
+<div class="navbar" style="margin-top: 15px">
+  <div class="navbar-inner" >
+    <div class="container">
+      <ul class="nav">
+        <li id="tweets_header" class="active">
+        	<a href="#" onclick="activ(&quot;tweets&quot;); return false;">{{user.username()}}'s tweets
+        	</a></li>
+        <li id="followed_users_header">
+        	<a href="#" onclick="activ(&quot;followed_users&quot;); return false;">{{user.username()}} follows {{user.num_followed_users()}} users
+        	</a></li>
+        <li id="followers_header"><a href="#" onclick="activ(&quot;followers&quot;); return false;">{{user.username()}} has {{user.num_followers()}} followers
+        	</a></li>
+      </ul>
+    </div>
+  </div>
+</div><!-- /.navbar -->
+
+
+<!--  TWEETS TABLE -->
+<div id="tweets">
+	<table class="table">
+		{% for tweet in user.tweets() %}
+		  <tr>
+		    <td> <b>{{ tweet.vals['dateTime'] }} </b></td>
+		  </tr>
+		  <tr>
+		  	<td>{{ tweet.vals['content'] | safe }} </td>
+		  </tr>
+	  	{% endfor %}
+	</table>
+</div>
+
+<!--  FOLLOWED USERS TABLE -->
+<div id="followed_users" style="display:none">
+	{% if user.num_followed_users() > 0 %}
+	<table class="table" id= "followed_users_table">
+		{% for f_user in user.followed_users() %}
+			<tr>
+			  <td><a href="/users/{{user.userID()}}">{{ f_user.username() }}</a></td>
+			  {% if User.logged_in() %}
+			  <td padding-top="0px">
+		  		{% if User.current().userID() != f_user.userID() %}
+		  			<form action="/user/follow/{{user.userID()}}?prev='user.html'" method="post">
+							<input type="submit" class="btn" 
+								value="{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}">
+						</form>
+					{% endif %}
+				</td>
+				{% endif %}
+			</tr>
+		{% endfor %}
+	</table>
+	{% else %}
+		{{user.username()}} is not following anyone!
+	{% endif %}
+</div>
+
+<!--  FOLLOWERS TABLE -->
+<div id="followers" style="display:none">
+	{% if user.num_followers() > 0 %}
+	<table class="table" id="followers_table">
+		{% for f_user in user.followers() %}
+			<tr>
+			  <td><a href="/users/{{user.userID()}}">{{ f_user.username() }}</a></td>
+			  {% if User.logged_in() %}
+			  <td padding-top="0px">
+		  		{% if User.current().userID() != f_user.userID() %}
+		  			<form action="/user/follow/{{user.userID()}}" method="post">
+							<input type="submit" class="btn" 
+								value="{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}">
+						</form>
+					{% endif %}
+				</td>
+				{% endif %}
+			</tr>
+		{% endfor %}
+	</table>
+	{% else %}
+		{{user.username()}} doesn't have any followers!
+		{% if User.logged_in() and User.current().userID() != user.userID() %}
+		Why don't you <a href="#">follow {{user.username()}}</a>?
+		{% endif %}
+	{% endif %}
+</div>
+
 {% endblock %}

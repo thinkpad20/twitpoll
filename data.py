@@ -35,8 +35,9 @@ class User(object):
 	@staticmethod
 	def current():
 		print "getting current user"
-		res = User.find_by_username(session['username'])
-		return res
+		if 'username' in session:
+			return User.find_by_username(session['username'])
+		return None
 
 	@staticmethod
 	def find_by_username(username):
@@ -54,7 +55,11 @@ class User(object):
 			for key in tbl.keys():
 				q += " %s = '%s'" % (key, tbl[key])
 		q += ";"
-		return sql_search(q)
+		res = sql_search(q)
+		print "res:", res
+		if res is not None:
+			return [User(u) for u in res]
+		return None
 
 	@staticmethod
 	def find_by_id(userID):
@@ -88,6 +93,10 @@ class User(object):
 		return [ Tweet(tweetdic) for tweetdic in data ]
 
 	@staticmethod
+	def exists(userID):
+		return User.find_by_id(userID) is not None
+
+	@staticmethod
 	def all():
 		return User.where()
 	
@@ -114,6 +123,11 @@ class User(object):
 		res = sql_execute(q)
 		return None
 
+	@staticmethod
+	def delete(userID):
+		q = "delete from Users where userID = %d" % int(userID)
+		sql_execute(q)
+
 	def attrs_to_display(self):
 		return ["username", "fullName", "email", "tagline"]
 
@@ -125,38 +139,87 @@ class User(object):
 				ret += " %s: %s" % (key, self.vals[key])
 		return ret
 
+	def is_following(self, userID):
+		q = ("select * from Users u1, Users u2, Follows f "
+			 "where u1.userID = f.follower "
+			 "and u2.userID = f.followee "
+			 "and u1.userID = %d "
+			 "and u2.userID = %d " % (self.userID(), userID))
+		res = sql_search(q)
+		if len(res) > 0:
+			return True
+		else:
+			return False
+
 	def username(self):
 		return self.vals["username"]
 
 	def userID(self):
 		return self.vals["userID"]
 
+	def email(self):
+		return self.vals["email"]
+
 	def checkpassword(self, password):
 		return self.vals["passwordHash"] == password ## yes, this is horribly insecure
 
 	def tweets(self):
-		return Tweet.by_userID(self.userID()) 
+		return Tweet.by_userID(self.userID())
+
+	def followed_tweets(self):
+		print "++++++++++++++++++++++++++++++GETTING FOLLOWED TWEETS"
+		q = ("select t.* "
+			"from Tweets t, Users followee, Follows f "
+			"where followee.userID = f.followee "
+			"and f.follower = %s "
+			"and t.userID = followee.userID "
+			"and t.visible = 1 "
+			"order by t.tweetID desc" % self.userID())
+		return [Tweet(t) for t in sql_search(q)]
 
 	def followers(self):
-		q = ("select * from Users follower, Users followee, Followers f "
-			"where follower.userID = f.follower "
-			"and followee.userID = %d") % self.userID()
-		return sql_search(q)
+		q = ("select follower.* "
+			 "from Users follower, Users followee, Follows f "
+			 "where follower.userID = f.follower "
+			 "and followee.userID = f.followee " 
+			 "and followee.userID = %d;") % self.userID()
+		print "++++++++++++++++++GETTING FOLLOWERS"
+		res = sql_search(q)
+		if res:
+			print "len: ", len(res)
+			return [User(u) for u in res]
+		return []
 
-	def followees(self):
-		q = ("select * from Users follower, Users followee, Followers f "
-			"where followee.userID = f.follower "
-			"and follower.userID = %d") % self.userID()
-		return sql_search(q)
+	def followed_users(self):
+		q = ("select followee.* "
+			 "from Users follower, Users followee, Follows f "
+			 "where follower.userID = f.follower "
+			 "and followee.userID = f.followee " 
+			 "and follower.userID = %d;") % self.userID()
+		print "++++++++++++++++++GETTING FOLLOWED USERS"
+		res = sql_search(q)
+
+		if res:
+			print "len: ", len(res)
+			return [User(u) for u in res]
+		return []
 
 	def follow(self, userID):
+		if self.is_following(userID): return
 		q = "insert into Follows (follower, followee) values (%d, %d)" % (self.userID(), userID)
 		return sql_execute(q)
 
 	def unfollow(self, userID):
-		q = "remove from Follows f where f.follower = %d and f.followee = %d" \
+		if not self.is_following(userID):return
+		q = "delete from Follows where follower = %d and followee = %d" \
 												% (self.userID(), userID)
 		return sql_execute(q)
+
+	def num_followed_users(self):
+		return len(self.followed_users())
+
+	def num_followers(self):
+		return len(self.followers())
 
 ####### end of class User #######
 
@@ -170,7 +233,9 @@ class Tweet(object):
 
 	@staticmethod
 	def find_by_username(username):
-		found = sql_search("select * from Users, Tweets where username = " + add_quotes(username))
+		q = ("select t.* from Users u, Tweets t where u.username = %s "
+			"and t.visible = 1 " % add_quotes(username))
+		found = sql_search(q)
 		if len(found) > 0 and found[0]: 
 			return Tweet(found[0])
 		else: 
@@ -178,7 +243,8 @@ class Tweet(object):
 
 	@staticmethod
 	def find_by_id(tweetID):
-		found = sql_search("select * from Tweets where tweetID = " + str(tweetID))
+		q = "select * from Tweets where tweetID = %d and visible = 1" % int(tweetID)
+		found = sql_search(q)
 		if len(found) > 0 and found[0]: 
 			return Tweet(found[0])
 		else: 
@@ -186,7 +252,8 @@ class Tweet(object):
 
 	@staticmethod
 	def by_userID(userID):
-		found = sql_search("select * from Tweets where userID = " + str(userID))
+		q = "select * from Tweets where userID = %d and visible = 1" % int(userID)
+		found = sql_search(q)
 		return [ Tweet(tweet) for tweet in found ]
 
 	@staticmethod
@@ -209,8 +276,8 @@ class Tweet(object):
 
 	@staticmethod
 	def get(limit = None):
-		q = "select * from Tweets"
-		if limit: q += " order by tweetID desc limit " + str(limit)
+		q = "select * from Tweets where visible = 1 order by tweetID desc"
+		if limit: q += " limit " + str(limit)
 		data = sql_search(q)
 		return [ Tweet(tweetdic) for tweetdic in data ]
 
@@ -233,18 +300,24 @@ class Tweet(object):
 
 	@staticmethod
 	def delete(tweetID):
-		q = "remove from Tweets where tweetID = %d" % int(tweetID)
+		q = "update Tweets set visible=0 where tweetID = %d" % int(tweetID)
 		return sql_execute(q)
 
 	@staticmethod
 	def search(keyword):
-		q = "select * from Tweets where content like \"%" + keyword + "%\")"
+		q = "select * from Tweets where visible = 1 and content like \"%" + keyword + "%\")"
 		return [Tweet(tweet) for tweet in sql_search(q)]
 
 	@staticmethod
 	def escape(strng):
 		res = strng.replace("'", "|").replace('"', "_")
 		return res
+
+	def userID(self):
+		return int(self.vals['userID'])
+
+	def tweetID(self):
+		return int(self.vals['tweetID'])
 
 	def has_poll(self):
 		poll = Poll.find_by_tweet(self.vals['tweetID'])
@@ -286,9 +359,9 @@ class Hashtag(object):
 
 	@staticmethod
 	def find_by_content(content):
-		found = sql_search("select * from ContainsHashtag where content = %s;" % add_quotes(content))
+		found = sql_search("select * from Hashtags where content = %s;" % add_quotes(content))
 		if len(found) > 0:
-			return Hashtag(found[0])
+			return [Hashtag(res) for res in found]
 		return None
 
 	@staticmethod
@@ -299,11 +372,9 @@ class Hashtag(object):
 
 	@staticmethod
 	def insert_hashtag(tweetID, content):
-		if not Hashtag.exists(content):
-			sql_execute("insert into Hashtags (content) values (%s);" % add_quotes(content))
-		sql_execute("insert into ContainsHashtag (content, tweetID) values (%s, %d);" % \
-														(add_quotes(content), tweetID))
-
+		sql_execute("insert into Hashtags (content, tweetID) values (%s, %d);" \
+														% (add_quotes(content), tweetID))
+		
 	@staticmethod
 	def detect(tweet_content):
 		return list(set([ word.strip().split()[0] for word in tweet_content.split("#")[1:]]))
@@ -311,9 +382,10 @@ class Hashtag(object):
 	def tweets(self):
 		found = sql_search(("select t.content, t.userID, t.dateTime "
 						   "from Tweets t "
-						   "inner join ContainsHashtag ch "
-						   "on t.tweetID = ch.tweetID "
-						   "where ch.content = %s;") % add_quotes(self.vals['content']))
+						   "inner join Hashtags h "
+						   "on t.tweetID = h.tweetID "
+						   "where h.content = %s "
+						   "and t.visible = 1") % add_quotes(self.vals['content']))
 		print "FOUND: ", found
 		return [ Tweet(tweet) for tweet in found ]
 
@@ -347,7 +419,8 @@ class Poll(object):
 		q = ("select p.*, t.content from Polls p "
 			"inner join Tweets t "
 			"on p.tweetID = t.tweetID "
-			"where p.pollID = %d") % int(pollID)
+			"where p.pollID = %d "
+			"and t.visible = 1") % int(pollID)
 		res = sql_search(q)
 		if res:
 			res = res[0]
@@ -363,7 +436,8 @@ class Poll(object):
 		q = ("select p.*, t.content from Polls p "
 			"inner join Tweets t "
 			"on p.tweetID = t.tweetID "
-			"where t.tweetID = %d") % tweetID
+			"where t.tweetID = %d "
+			"and t.visible = 1") % tweetID
 		res = sql_search(q)[0] if sql_search(q) else []
 		if res:
 			tweet_text = res['content']
@@ -458,7 +532,8 @@ class Mention(object):
 						   "from Tweets t "
 						   "inner join Mentions m "
 						   "on t.tweetID = m.tweetID "
-						   "where m.userID = %d") % userID)
+						   "where m.userID = %d "
+						   "and t.visible = 1") % userID)
 		return [ Tweet(tweet) for tweet in found ]
 
 	@staticmethod
@@ -469,5 +544,6 @@ class Mention(object):
 						   "on t.tweetID = m.tweetID "
 						   "where m.userID in ("
 						   "select u.userID from Users u "
-						   "where u.username = %s limit 1)") % add_quotes(username))
+						   "where u.username = %s "
+						   "and t.visible = 1 limit 1)") % add_quotes(username))
 		return [ Tweet(tweet) for tweet in found ]
