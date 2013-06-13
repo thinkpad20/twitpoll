@@ -71,8 +71,7 @@ CREATE TABLE Tweets (
 	hasPoll INTEGER					NOT NULL,
 	visible INTEGER					NOT NULL DEFAULT 1,
 	PRIMARY KEY (tweetID),
-	FOREIGN KEY (userID) REFERENCES Users(userID)
-	ON DELETE CASCADE
+	FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
 -- select "create Hashtags" as "Action";
@@ -82,7 +81,7 @@ CREATE TABLE Hashtags (
 	tweetID	INTEGER					NOT NULL,
 	content VARCHAR(140) 			NOT NULL,
 	PRIMARY KEY (hashtagID),
-	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID) ON DELETE CASCADE
 );
 
 -- select "create Follows" as "Action";
@@ -91,8 +90,8 @@ CREATE TABLE Follows (
 	follower INTEGER 				NOT NULL,
 	followee INTEGER 				NOT NULL,
 	PRIMARY KEY (follower, followee),
-	FOREIGN KEY (follower) REFERENCES Users(userID),
-	FOREIGN KEY (followee) REFERENCES Users(userID)
+	FOREIGN KEY (follower) REFERENCES Users(userID) ON DELETE CASCADE,
+	FOREIGN KEY (followee) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
 -- select "create Retweets" as "Action";
@@ -102,8 +101,8 @@ CREATE TABLE Retweets (
 	userID INTEGER 					NOT NULL,
 	dateTime TIMESTAMP				NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (userID, tweetID),
-	FOREIGN KEY (userID) REFERENCES Users(userID),
-	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID)
+	FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE,
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID) ON DELETE CASCADE
 );
 
 -- select "create Mentions" as "Action";
@@ -112,8 +111,8 @@ CREATE TABLE Mentions (
 	tweetID INTEGER 				NOT NULL,
 	userID INTEGER 					NOT NULL,
 	PRIMARY KEY (tweetID, userID),
-	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID),
-	FOREIGN KEY (userID) REFERENCES Users(userID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID) ON DELETE CASCADE,
+	FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
 -- select "create Favorites" as "Action";
@@ -122,8 +121,8 @@ CREATE TABLE Favorites (
 	tweetID INTEGER 				NOT NULL,
 	userID INTEGER 					NOT NULL,
 	PRIMARY KEY (tweetID, userID),
-	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID),
-	FOREIGN KEY (userID) REFERENCES Users(userID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID) ON DELETE CASCADE,
+	FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
 -- select "create Messages" as "Action";
@@ -135,8 +134,8 @@ CREATE TABLE Messages (
 	content VARCHAR(140)			NOT NULL,
 	dateTime TIMESTAMP			 	NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	PRIMARY KEY (messageID),
-	FOREIGN KEY (senderID) REFERENCES Users(userID),
-	FOREIGN KEY (receiverID) REFERENCES Users(userID)
+	FOREIGN KEY (senderID) REFERENCES Users(userID) ON DELETE CASCADE,
+	FOREIGN KEY (receiverID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
 -- select "create Polls" as "Action";
@@ -146,5 +145,5 @@ CREATE TABLE Polls (
 	tweetID INTEGER NOT NULL,
 	pollOptionText VARCHAR(300),
 	PRIMARY KEY (pollID),
-	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID)
+	FOREIGN KEY (tweetID) REFERENCES Tweets(tweetID) ON DELETE CASCADE
 );

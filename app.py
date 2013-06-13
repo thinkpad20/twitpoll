@@ -65,7 +65,7 @@ def users():
 		if username and password and email and password == passwordconf:
 			error = User.add(username, password, email)
 			if not error:
-				session["username"] = username
+				session["userID"] = User.find_by_username(username).userID()
 				return render_template("users.html", messages = {'general': 'welcome to TwitPoll!'})
 			else:
 				return render_template("signup.html", error=error)
@@ -132,17 +132,18 @@ def tweet():
 			errors['general'] = "You are not logged in"
 			return render_template("home.html", error=errors)
 
-@app.route("/disable/<userID>", methods=["GET", "POST"])
-def disable_account(userID):
+@app.route("/delete/<userID>", methods=["GET", "POST"])
+def delete_account(userID):
 	if not User.exists(userID):
 		return redirect(url_for('error404'))
 	if request.method == "GET":
-		return render_template("disable_confirm.html", user=User.find_by_id(userID))
+		return render_template("delete_confirm.html", user=User.find_by_id(userID))
 	if request.method == "POST":
 		set_active("home")
 		if User.logged_in() and User.current_id() == int(userID):
 			msg = "Sad to see you go, %s!" % User.current().username()
-			User.disable(userID)
+			User.delete(userID)
+			session.clear()
 			return render_template("home.html", error={'general':msg})
 		else:
 			return render_template("home.html", error={'general':'You are not logged in.'})

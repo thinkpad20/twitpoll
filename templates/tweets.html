@@ -20,21 +20,21 @@ div.overflow {height: 15px; overflow: hidden;}
     	<td>
 		  	<div id="users_area" style="height:500px;width:200px;border:0px solid #ccc;overflow:auto;">
 		  		<h2>TwitPoll users</h2>
-						<table class="table">
-						{% for user in User.all() %}
-							<tr>
-							  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
-							  {% if User.logged_in() %}
-							  <td padding-top="0px">
-						  		{% if User.current().userID() != user.userID() %}
-						  			<a href="/user/follow/{{user.userID()}}?prev=tweets.html">{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}
+					<table class="table">
+					{% for user in User.all() %}
+						<tr>
+						  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
+						  {% if User.logged_in() %}
+						  <td padding-top="0px">
+					  		{% if User.current_id() != user.userID() %}
+					  			<a id="hey" href="#" onclick="fol({{user.userID()}})">{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}
 										</a>
-									{% endif %}
-								</td>
 								{% endif %}
-							</tr>
-						{% endfor %}
-						</table>
+							</td>
+							{% endif %}
+						</tr>
+					{% endfor %}
+					</table>
 		  	</div>
 		  </td>
       <td>
@@ -50,7 +50,7 @@ div.overflow {height: 15px; overflow: hidden;}
 		        </td>
 		        <td>
 		        	<div class="overflow">
-		            {% if User.logged_in() and tweet.userID() == User.current().userID() %}
+		            {% if User.logged_in() and tweet.userID() == User.current_id() %}
 		            <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
 		                <input type="submit" class="linkbutton" value="delete">
 		            </form>

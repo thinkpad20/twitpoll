@@ -33,13 +33,6 @@ var hide_user_list = function() {
 	$('#show_users').addClass('inline_su');
 }
 
-var fol = function(userID) {
-	$.post('/user/follow/' + userID, 
-						function() { 
-							setTimeout(function() { location.reload(); }, 100);
-						});
-}
-
 </script>
 
 <style>
@@ -67,7 +60,7 @@ View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="sho
 							  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
 							  {% if User.logged_in() %}
 							  <td padding-top="0px">
-						  		{% if User.current_id() != user.userID() %}
+						  		{% if !User.current_is(user) %}
 						  			<a id="hey" href="#" onclick="fol({{user.userID()}})">{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}
 										</a>
 									{% endif %}
@@ -118,7 +111,7 @@ View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="sho
 
 
 		    <div id="fol_tweet_area" style="height:500px;width:500px;border:0px solid #ccc;overflow:auto;">
-		    	<h3>recent tweets by those {{"you follow" if User.logged_in() and User.current_id() == user.userID() else user.username()+" follows" }}</h3>
+		    	<h3>recent tweets by those {{"you follow" if User.logged_in() and User.current_is(user) else user.username()+" follows" }}</h3>
 				<table class="table">
 				{% for tweet in user.followed_tweets() %}
 				  <tr>

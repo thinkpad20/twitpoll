@@ -189,7 +189,6 @@ class User(object):
 		return Tweet.by_userID(self.userID())
 
 	def followed_tweets(self):
-		print "++++++++++++++++++++++++++++++GETTING FOLLOWED TWEETS"
 		q = ("select t.* "
 			"from Tweets t, Users followee, Follows f "
 			"where followee.userID = f.followee "
@@ -205,7 +204,6 @@ class User(object):
 			 "where follower.userID = f.follower "
 			 "and followee.userID = f.followee " 
 			 "and followee.userID = %d;") % self.userID()
-		print "++++++++++++++++++GETTING FOLLOWERS"
 		res = sql_search(q)
 		if res:
 			print "len: ", len(res)

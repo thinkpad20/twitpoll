@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div class="text-center">
+Oh no! Are you sure you want to delete your account?
+<p>
+<form action="/delete/{{User.current_id()}}" method="post">
+	<input name="confirm_delete" type="submit" value="Yes, delete my account">
+</form>
+<form action="/users/{{User.current_id()}}" method="get">
+	<input name="change_mind" type="submit" value="No, I changed my mind">
+</form>
+</div>
+
+{% endblock %}

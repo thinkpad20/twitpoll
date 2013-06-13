@@ -4,7 +4,7 @@
 
 <div class="masthead">
     <p class="muted text-right">{% if User.logged_in() %}You are logged in as {{ User.current().username() }}.
-                                  <a href="{{ url_for('user_profile', userid=User.current().userID()) }}">my profile</a> |
+                                  <a href="{{ url_for('user_profile', userid=User.current_id()) }}">my profile</a> |
                                   <a href="{{ url_for('signout') }}">sign out</a>
                                   {% else %}
                                     You are not signed in. <a href="{{url_for('signin')}}">sign in</a>
@@ -16,10 +16,10 @@
         <ul class="nav">
           <li class="{{ navclass["home"] }}"><a href="/">Home</a></li>
           {% if User.logged_in() %}
-            <li class="{{ navclass["followed_tweets"] }}"><a href="/tweets/followedby/{{User.current().userID()}}">My Stream</a></li>
+            <li class="{{ navclass["followed_tweets"] }}"><a href="/tweets/followedby/{{User.current_id()}}">My Stream</a></li>
             <li class="{{ navclass["newtweet"] }}"><a href="/tweets/new">Tweet</a></li>
           {% else %}
-          <li class="{{ navclass["tweets"] }}"><a href="/tweets">Browse</a></li>
+          <li class="{{ navclass["tweets"] }}"><a href="/tweets">Recent Twitpolls</a></li>
           {% endif %}
         </ul>
       </div>
