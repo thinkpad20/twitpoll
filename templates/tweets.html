@@ -19,9 +19,9 @@ div.overflow {height: 15px; overflow: hidden;}
     <tr>
     	<td>
 		  	<div id="users_area" style="height:500px;width:200px;border:0px solid #ccc;overflow:auto;">
-		  		<h2>TwitPoll users</h2>
+		  		<h2>Recent TwitPoll users</h2>
 					<table class="table">
-					{% for user in User.all() %}
+					{% for user in User.get_n(10) %}
 						<tr>
 						  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
 						  {% if User.logged_in() %}
@@ -41,7 +41,7 @@ div.overflow {height: 15px; overflow: hidden;}
 		 <div id="tweet_area" style="height:500px;width:650px;border:0px solid #ccc;overflow:auto;">
 		    <h2>Recent tweets on TwitPoll:</h2>
 		    <table class="table">
-		    {% for tweet in Tweet.get() %}
+		    {% for tweet in Tweet.get(10) %}
 		      <tr>
 		        <td height="15px">
 		        	<div class="overflow">

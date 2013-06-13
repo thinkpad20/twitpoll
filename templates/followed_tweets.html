@@ -55,7 +55,7 @@ View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="sho
 		  	<div id="users_area" style="height:500px;width:200px;border:0px solid #ccc;overflow:auto;">
 		  		<h2>user list</h2> (<a href="#" onclick="hide_user_list()">hide</a>)
 						<table class="table">
-						{% for user in User.all() %}
+						{% for user in User.get_n(50) %}
 							<tr>
 							  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
 							  {% if User.logged_in() %}
@@ -75,7 +75,7 @@ View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="sho
       <div id="all_tweet_area" style="height:500px;width:500px;border:0px solid #ccc;overflow:auto;display:none">
       	<h3>recent twitpoll tweets</h3>
 		    <table class="table">
-		    {% for tweet in Tweet.get() %}
+		    {% for tweet in Tweet.get(50) %}
 		      <tr>
 		        <td height="15px">
 		        	<div class="overflow">
