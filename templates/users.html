@@ -4,12 +4,12 @@
 
 <h2>TwitPoll users</h2>
 <table class="table">
-{% for user in User.all() %}
+{% for user in User.get_n(20) %}
 	<tr>
 	  <td><a href="/users/{{ user.userID() }}">{{ user.username() }}</a></td>
 	  {% if User.logged_in() %}
 	  <td>
-  		{% if User.current().userID() != user.userID() %}
+  		{% if User.current_id() != user.userID() %}
   			<form action="/user/follow/{{user.userID()}}" method="post">
 					<input type="submit" class="btn" 
 						value="Click here to {{"unfollow" if User.current().is_following(user.userID()) else "follow"}} {{user.username()}}">

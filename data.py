@@ -118,6 +118,11 @@ class User(object):
 	@staticmethod
 	def all():
 		return User.where()
+
+	@staticmethod
+	def get_n(n):
+		q = "select * from Users order by userID desc limit %d;" % n
+		return [User(u) for u in sql_search(q)]
 	
 	@staticmethod
 	def logged_in():
