@@ -15,10 +15,11 @@
       <div class="container">
         <ul class="nav">
           <li class="{{ navclass["home"] }}"><a href="/">Home</a></li>
-          <li class="{{ navclass["tweets"] }}"><a href="/tweets">Browse</a></li>
           {% if User.logged_in() %}
             <li class="{{ navclass["followed_tweets"] }}"><a href="/tweets/followedby/{{User.current().userID()}}">My Stream</a></li>
             <li class="{{ navclass["newtweet"] }}"><a href="/tweets/new">Tweet</a></li>
+          {% else %}
+          <li class="{{ navclass["tweets"] }}"><a href="/tweets">Browse</a></li>
           {% endif %}
         </ul>
       </div>

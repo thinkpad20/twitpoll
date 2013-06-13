@@ -2,21 +2,73 @@
 
 {% block main %}
 
+<script>
+var show_all = function() {
+	$('#all_tweet_area').show();
+	$('#fol_tweet_area').hide();
+	$('#my_tweet_area').hide();
+}
 
+var show_followed = function() {
+	$('#all_tweet_area').hide();
+	$('#fol_tweet_area').show();
+	$('#my_tweet_area').hide();
+}
+
+var show_my = function() {
+	$('#all_tweet_area').hide();
+	$('#fol_tweet_area').hide();
+	$('#my_tweet_area').show();
+}
+
+var show_user_list = function() {
+	$('#users_area').show();
+	$('#show_users').removeClass('inline_su');
+	$('#show_users').addClass('invis_su');
+}
+
+var hide_user_list = function() {
+	$('#users_area').hide();
+	$('#show_users').removeClass('invis_su');
+	$('#show_users').addClass('inline_su');
+}
+
+var fol = function(userID) {
+	$.post('/user/follow/' + userID, 
+						function() { 
+							setTimeout(function() { location.reload(); }, 100);
+						});
+}
+
+</script>
+
+<style>
+
+.invis_su {
+	display:none;
+}
+
+.inline_su {
+	display:inline;
+}
+
+</style>
+
+View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="show_followed()">Followed users' tweets</a> | <a href="#" onclick="show_my()">My tweets</a><div id="show_users" class="invis_su">&nbsp;|&nbsp;<a href="#" onclick="show_user_list()">show user list</a></div>
 
 <table>
     <tr>
     	<td>
 		  	<div id="users_area" style="height:500px;width:200px;border:0px solid #ccc;overflow:auto;">
-		  		<h2>users</h2>
+		  		<h2>user list</h2> (<a href="#" onclick="hide_user_list()">hide</a>)
 						<table class="table">
 						{% for user in User.all() %}
 							<tr>
 							  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
 							  {% if User.logged_in() %}
 							  <td padding-top="0px">
-						  		{% if User.current().userID() != user.userID() %}
-						  			<a href="/user/follow/{{user.userID()}}?prev=followed_tweets.html">{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}
+						  		{% if User.current_id() != user.userID() %}
+						  			<a id="hey" href="#" onclick="fol({{user.userID()}})">{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}
 										</a>
 									{% endif %}
 								</td>
@@ -27,8 +79,46 @@
 		  	</div>
 		  </td>
       <td>
-		    <div id="tweet_area" style="height:500px;width:500px;border:0px solid #ccc;overflow:auto;">
-				<h2>Users you follow tweeted:</h2>
+      <div id="all_tweet_area" style="height:500px;width:500px;border:0px solid #ccc;overflow:auto;display:none">
+      	<h3>recent twitpoll tweets</h3>
+		    <table class="table">
+		    {% for tweet in Tweet.get() %}
+		      <tr>
+		        <td height="15px">
+		        	<div class="overflow">
+		        		<a href="/users/{{tweet.userID()}}">{{ tweet.username() }}</a> tweeted...
+		        	</div>
+		        </td>
+		        <td>
+		        	<div class="overflow">
+		            {% if User.logged_in() and tweet.userID() == User.current_id() %}
+		            <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
+		                <input type="submit" class="linkbutton" value="delete">
+		            </form>
+		            {% endif %}
+		          </div>
+		        </td>
+		      </tr>
+		      <tr colspan="2">
+		        <td>
+		            {{ tweet.vals['content']|safe }}
+		            <br>
+		            {% if tweet.has_poll() %}
+		                {% with poll=tweet.poll() %}
+		                {% include "poll_mini.html" %}
+		                {% endwith %}
+		            {% endif %}
+		        </td>
+		      </tr>
+		      <tr>
+		      </tr>
+		    {% endfor %}
+		    </table>
+		    </div>
+
+
+		    <div id="fol_tweet_area" style="height:500px;width:500px;border:0px solid #ccc;overflow:auto;">
+		    	<h3>recent tweets by those {{"you follow" if User.logged_in() and User.current_id() == user.userID() else user.username()+" follows" }}</h3>
 				<table class="table">
 				{% for tweet in user.followed_tweets() %}
 				  <tr>
@@ -39,11 +129,46 @@
 				    </td>
 				    <td>
 				        <div class="overflow">
-				        {% if User.logged_in() and tweet.userID() == User.current().userID() %}
+				        {% if User.logged_in() and tweet.userID() == User.current_id() %}
 				        <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
 				            <input type="submit" class="linkbutton" value="delete">
 				        </form>
 				        {% endif %}
+				      </div>
+				    </td>
+				  </tr>
+				  <tr colspan="2">
+				    <td>
+				        {{ tweet.vals['content']|safe }}
+				        <br>
+				        {% if tweet.has_poll() %}
+				            {% with poll=tweet.poll() %}
+				            {% include "poll_mini.html" %}
+				            {% endwith %}
+				        {% endif %}
+				    </td>
+				  </tr>
+				  <tr>
+				  </tr>
+				{% endfor %}
+				</table>
+			</div>
+
+			<div id="my_tweet_area" style="height:500px;width:500px;border:0px solid #ccc;overflow:auto;display:none">
+		    	<h3>Your tweets</h3>
+				<table class="table">
+				{% for tweet in user.tweets() %}
+				  <tr>
+				    <td height="15px">
+				        <div class="overflow">
+				            {{tweet.vals['dateTime']}}
+				        </div>
+				    </td>
+				    <td>
+				        <div class="overflow">
+				        <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
+				            <input type="submit" class="linkbutton" value="delete">
+				        </form>
 				      </div>
 				    </td>
 				  </tr>

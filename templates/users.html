@@ -4,14 +4,9 @@
 
 <h2>TwitPoll users</h2>
 <table class="table">
-  <tr>
-    <th>Username</th>
-    <th>email</th>
-  </tr>
 {% for user in User.all() %}
 	<tr>
-	  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
-	  <td>{{ user.email() }}</td>
+	  <td><a href="/users/{{ user.userID() }}">{{ user.username() }}</a></td>
 	  {% if User.logged_in() %}
 	  <td>
   		{% if User.current().userID() != user.userID() %}

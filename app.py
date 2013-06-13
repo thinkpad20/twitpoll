@@ -90,10 +90,18 @@ def user_tweets(userid):
 	print "here's where we should show the tweets for user %d" % userid
 	return redirect(url_for("show_tweets"));
 
-@app.route("/users/<userid>/edit")
-def edit_user(userid):
-	print "to edit a user's profile"
-	return redirect(url_for("users"))
+@app.route("/users/edit/<userID>", methods=["GET", "POST"])
+def edit_user(userID):
+	print "processing a " + request.method + " request to /users/edit/" + userID
+	set_active("")
+	user = User.find_by_id(userID)
+	if not User.current_is(userID, True):
+		return redirect(url_for("users"))
+	if request.method == "GET":
+		return render_template("edit_user.html", user = user)
+	else:
+		res = User.current().update(request.form)
+		return render_template("user.html", user=user, messages=res)
 
 @app.route("/tweets")
 def show_tweets():
@@ -117,7 +125,7 @@ def tweet():
 				polloptions.append(request.form[op])
 		errors = {}
 		if User.logged_in():
-			userid = User.current().userID()
+			userid = User.current_id()
 			Tweet.make(userid, content, polloptions)
 			return redirect(url_for('user_tweets', userid=userid))
 		else:
@@ -131,7 +139,8 @@ def disable_account(userID):
 	if request.method == "GET":
 		return render_template("disable_confirm.html", user=User.find_by_id(userID))
 	if request.method == "POST":
-		if User.logged_in() and User.current().userID() == int(userID):
+		set_active("home")
+		if User.logged_in() and User.current_id() == int(userID):
 			msg = "Sad to see you go, %s!" % User.current().username()
 			User.disable(userID)
 			return render_template("home.html", error={'general':msg})
@@ -140,6 +149,7 @@ def disable_account(userID):
 
 @app.route("/tweets/delete/<tweetID>", methods=["POST"])
 def delete_tweet(tweetID):
+	set_active("tweets")
 	if Tweet.find_by_id(tweetID) is not None:
 		Tweet.delete(tweetID)
 	return render_template("tweets.html")
@@ -153,6 +163,7 @@ def view_followed_tweets(userID):
 
 @app.route("/user/follow/<userID>", methods=["POST"])
 def follow(userID):
+	print "Someone has requested a fol/defol!"
 	if not User.exists(int(userID)):
 		return render_template("home.html", error={"general":\
 						"We're sorry, that user doesn't seem to exist."})
@@ -162,16 +173,16 @@ def follow(userID):
 	if not User.logged_in():
 		return render_template("home.html", error={'general':'You are not logged in.'})
 	msg = ""
-	template = request.args.get("prev", "")
+	template = request.args.get("prev", "tweets.html")
+	src_userID = request.args.get("id", User.current_id())
 	if user.is_following(userID):
-		msg = "You are now following " + tofollow.username()
-		user.unfollow(userID)
-		if not template: template = "tweets.html"
-	else:
 		msg = "You have unfollowed " + tofollow.username()
+		user.unfollow(userID)
+	else:
+		msg = "You are now following " + tofollow.username()
 		user.follow(userID)
-		if not template: template = "tweets.html"
-	return render_template(template, user= tofollow, messages={'general':msg})
+	set_active(template.split(".")[0])
+	return render_template(template, user=User.find_by_id(src_userID), messages={'general':msg})
 
 @app.route("/hashtags/<content>")
 def show_hashtag(content):
@@ -211,7 +222,7 @@ def signin():
 		if username and password:
 			user, error = User.authenticate(username, password)
 			if user is not None:
-				session['username'] = username
+				session['userID'] = user.userID()
 				return redirect(url_for('user_profile', userid=user.userID()))
 			else:
 				return render_template('signin.html', error=error)

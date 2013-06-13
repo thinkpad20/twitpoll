@@ -34,10 +34,14 @@ class User(object):
 
 	@staticmethod
 	def current():
-		print "getting current user"
-		if 'username' in session:
-			return User.find_by_username(session['username'])
+		if 'userID' in session:
+			print "found userID:", session['userID']
+			return User.find_by_id(session['userID'])
 		return None
+
+	@staticmethod
+	def current_id():
+		return int(session.get('userID', 1))
 
 	@staticmethod
 	def find_by_username(username):
@@ -86,6 +90,21 @@ class User(object):
 		return username_r[0]['userID']
 
 	@staticmethod
+	def current_is(user, byID = False):
+		if byID:
+			print "looking up user by id", user
+			user = User.find_by_id(user)
+		if not user:
+			print "user was not found"
+		if not User.current(): 
+			print "not logged in"
+			return False
+		if User.current_id() != user.userID():
+			print "ids", User.current_id(), user.userID(), "don't match"
+			return False
+		return True
+
+	@staticmethod
 	def get(limit = None):
 		q = "select * from Users"
 		if limit: q += " order by userID desc limit " + str(limit)
@@ -102,7 +121,7 @@ class User(object):
 	
 	@staticmethod
 	def logged_in():
-		return 'username' in session
+		return 'userID' in session
 
 	@staticmethod
 	def validate_new(username, password, email):
@@ -144,7 +163,7 @@ class User(object):
 			 "where u1.userID = f.follower "
 			 "and u2.userID = f.followee "
 			 "and u1.userID = %d "
-			 "and u2.userID = %d " % (self.userID(), userID))
+			 "and u2.userID = %d " % (self.userID(), int(userID)))
 		res = sql_search(q)
 		if len(res) > 0:
 			return True
@@ -159,6 +178,9 @@ class User(object):
 
 	def email(self):
 		return self.vals["email"]
+
+	def full_name(self):
+		return self.vals["fullName"]
 
 	def checkpassword(self, password):
 		return self.vals["passwordHash"] == password ## yes, this is horribly insecure
@@ -221,6 +243,51 @@ class User(object):
 	def num_followers(self):
 		return len(self.followers())
 
+	def update(self, params):
+		print "updating a user!"
+		numvals = 0
+		res = {}
+		if 'password' in params and params['password'] != params.get('password_conf', ""):
+			res["passwordconf"] = "passwords don't match"
+		if 'username' in params and params['username'] != self.username():
+			if len(params['username']) > 50:
+				res["username"] = "Username is too long"
+			else:
+				q = "select * from Users where username = %s" % add_quotes(params['username'])
+				r = sql_search(q)
+				if r:
+					res["username"] = "Username is not available"
+		if 'email' in params:
+			q = "select * from Users where email = %s" % add_quotes(params['email'])
+			r = sql_search(q)
+			if r:
+				res["email"] = "Email is not available"
+		if res: 
+			print "Errors found!", res
+			return res
+
+		print "No errors detected so far."
+		q = "update Users set "
+		for val in params:
+			if not val or not params[val] or val == "password_conf":
+				continue
+			if numvals > 0:
+				q += ", "
+			if val == "age":
+				q += val + "=" + params[val]
+			elif val == "password":
+				q += "passwordHash=" + add_quotes(params[val])
+			else:
+				q += val + "=" + add_quotes(params[val])
+				res[val] = "updated %s successfully" % val
+			numvals += 1
+		if numvals == 0: return
+		q += " where userID = %d" % self.userID()
+		sql_execute(q)
+		res['general'] = "Updated account!"
+		return res
+
+
 ####### end of class User #######
 
 #### TWEETS ####
@@ -263,11 +330,14 @@ class Tweet(object):
 		res = ""
 		for word in words:
 			if word[0] == '@':
+				print "++++++++++++++++++++++++++++++++++++AT MENTION FOUND"
 				link = "/users/"
 				user = User.find_by_username(word[1:])
 				if user:
-					link += user.vals['userID']
-				res += " <a href=\"%s\">%s</a>" % (link, word)
+					link += str(user.userID())
+					res += " <a href=\"%s\">%s</a>" % (link, word)
+				else:
+					res += " " + word
 			elif word[0] == '#':
 				res += " <a href=\"/hashtags/%s\">%s</a>" % (word[1:], word)
 			else:
@@ -294,9 +364,9 @@ class Tweet(object):
 			print "User submitted a tweet with a poll! Options are:", polloptions
 			Poll.make_new(tweetID, content, polloptions)
 		for hashtag in Hashtag.detect(content):
-			Hashtag.insert_hashtag(tweetID, hashtag)
+			Hashtag.insert(tweetID, hashtag)
 		for mention in Mention.detect(content):
-			Mention.insert_mention(tweetID, hashtag)
+			Mention.insert(tweetID, mention)
 
 	@staticmethod
 	def delete(tweetID):
@@ -371,7 +441,7 @@ class Hashtag(object):
 		return True if len(res) > 0 else False
 
 	@staticmethod
-	def insert_hashtag(tweetID, content):
+	def insert(tweetID, content):
 		sql_execute("insert into Hashtags (content, tweetID) values (%s, %d);" \
 														% (add_quotes(content), tweetID))
 		

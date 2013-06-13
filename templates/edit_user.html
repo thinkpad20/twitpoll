@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<style>
+table.center {
+    margin-left:100px; 
+    margin-right:auto;
+  }
+</style>
+
+<h1>Edit your settings</h1>
+
+	<form accept-charset="UTF-8" action="/users/edit/{{user.userID()}}" id="edit_user_2" method="post">
+
+  <table class="center">
+    <tr>
+      <td>
+    <div class="field" style="margin-bottom: 15px">
+      <label for="user_username" style="margin-bottom:-10px">Username</label><br />
+      <input id="user_username" name="username" size="30" type="text" placeholder="{{user.username()}}" />
+    </div>
+    </td>
+  </tr>
+  <tr>
+      <td>
+  <div class="field" style="margin-bottom: 15px">
+    <label for="user_password" style="margin-bottom:-10px">Password</label><br />
+    <input id="password" name="password" type="password" />
+  </div>
+  </td>
+  </tr>
+  <tr>
+      <td>
+  <div class="field" style="margin-bottom: 15px">
+    <label for="user_password" style="margin-bottom:-10px">Password Confirmation</label><br />
+    <input id="password_conf" name="password_conf" type="password" />
+  </div>
+  </td>
+  </tr>
+  <tr>
+      <td>
+  <div class="field" style="margin-bottom: 15px">
+    <label for="user_email" style="margin-bottom:-10px">Email</label><br />
+    <input id="user_email" name="email" size="30" type="text" placeholder="{{user.email()}}" />
+  </div>
+  </td>
+  </tr>
+  <tr>
+      <td>
+  <div class="field" style="margin-bottom: 15px">
+    <label for="user_full_name" style="margin-bottom:-10px">Full name</label><br />
+    <input id="user_full_name" name="fullName" size="30" type="text" placeholder="{{user.full_name()}}" />
+  </div>
+  </td>
+  </tr>
+  <tr>
+    <td>
+      <label for="user_age" style="margin-bottom:-10px">Age</label><br />
+        <input id="user_age" type="number" name="age" min="14" max="135">
+    </td>
+  </tr>
+  <tr>
+      <td>
+        <br>
+  <div class="actions">
+    <input type="submit" value="Submit changes"></input>
+  </div>
+  </td>
+  </tr>
+</form>
+
+<a href="/disable/{{user.userID()}}">Disable my account</a>
+
+{% endblock %}

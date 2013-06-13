@@ -43,7 +43,7 @@
       </tr>
       {% for user in User.get(10) %}
         <tr>
-          <td>{{ user.username() }}</td>
+          <td><a href="/users/{{ user.userID() }}">{{ user.username() }}</a></td>
           <td>{{ user.vals['memberSince'] }}</td>
         </tr>
       {% endfor %}
