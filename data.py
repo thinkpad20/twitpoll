@@ -193,6 +193,55 @@ class User(object):
 	def tweets(self):
 		return Tweet.by_userID(self.userID())
 
+	def favorites(self):
+		q = "select f.tweetID from Favorites f where f.userID = %d" % self.userID()
+		q = "select t.* from Tweets t where t.tweetID in (%s)" % q
+		res = sql_search(q)
+		if res:
+			return [Tweet(t) for t in res]
+		return []
+
+	def add_favorite(self, tweetID):
+		q = "insert into Favorites (userID, tweetID) values (%d, %d)" % \
+									(int(self.userID()), int(tweetID))
+		sql_execute(q)
+
+	def remove_favorite(self, tweetID):
+		q = "delete from Favorites where userID = %d and tweetID = %d" % \
+									(int(self.userID()), int(tweetID))
+		sql_execute(q)
+
+	def is_favoriting(self, tweetID):
+		print "++++++++++++++seeing if is favoriting"
+		q = "select * from Favorites f where userID = %d and tweetID = %d" % \
+												(int(self.userID()), int(tweetID))
+		res = sql_search(q)
+		return len(res) > 0
+
+	def retweets(self):
+		q = "select r.tweetID from Retweets r where r.userID = %d" % self.userID()
+		q = "select t.* from Tweets t where t.tweetID in (%s)" % q
+		res = sql_search(q)
+		if res:
+			return [Tweet(t) for t in res]
+		return []
+
+	def add_retweet(self, tweetID):
+		q = "insert into Retweets (userID, tweetID) values (%d, %d)" % \
+									(int(User.current_id()), int(tweetID))
+		sql_execute(q)
+
+	def remove_retweet(self, tweetID):
+		q = "delete from Retweets where userID = %d and tweetID = %d" % \
+									(int(User.current_id()), int(tweetID))
+		sql_execute(q)
+
+	def is_retweeting(self, tweetID):
+		q = "select * from Retweets where userID = %d and tweetID = %d" % \
+												(int(self.userID()), int(tweetID))
+		res = sql_search(q)
+		return len(res) > 0
+
 	def followed_tweets(self):
 		q = ("select t.* "
 			"from Tweets t, Users followee, Follows f "

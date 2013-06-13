@@ -95,16 +95,6 @@ locations = [("Somewhere", "Illinois")]
 
 
 class User:
-	username = "U"
-	userID = 0
-	fullName = "FN"
-	passwordHash = "PWH"
-	email = "EM"
-	imageURL = "iURL"
-	facebookURL = "fbURL"
-	tagline = "tgln"
-	age = 20
-	sex = 'Male'
 	def randomize(self):
 		global uid, locations, usernames
 
@@ -118,6 +108,7 @@ class User:
 		self.fullName = "FN" + rand_str(20)
 		self.userID = uid
 		uid += 1
+		print "created user with id = "
 		self.city, self.state = random.choice(locations)
 		self.passwordHash = "PWH" + rand_str(50)
 		self.email = self.username + '@' + self.username + '.com'

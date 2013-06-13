@@ -5,8 +5,8 @@
 <script type="text/javascript">
 
 var activ = function(id) {
-	var elems = [$('#tweets'), $('#followed_users'), $('#followers')];
-	var hdrs = [$('#tweets_header'), $('#followed_users_header'), $('#followers_header')];
+	var elems = [$('#tweets'), $('#followed_users'), $('#followers'), $('#favorites'), $('#retweets')];
+	var hdrs = [$('#tweets_header'), $('#followed_users_header'), $('#followers_header'), $('#favorites_header'), $('#retweets_header')];
 	var idx = 0;
 	while (idx < elems.length) {
 		var elem = elems[idx];
@@ -68,6 +68,10 @@ var fol = function(userID) {
         	<a href="#" onclick="activ(&quot;followed_users&quot;); return false;">{{user.username()}} follows {{user.num_followed_users()}} users
         	</a></li>
         <li id="followers_header"><a href="#" onclick="activ(&quot;followers&quot;); return false;">{{user.username()}} has {{user.num_followers()}} followers
+        	</a></li>
+        <li id="favorites_header"><a href="#" onclick="activ(&quot;favorites&quot;); return false;">{{user.username()}} has favorited {{len(user.favorites())}} tweets
+        	</a></li>
+        <li id="retweets_header"><a href="#" onclick="activ(&quot;retweets&quot;); return false;">{{user.username()}} has retweeted {{len(user.retweets())}} tweets
         	</a></li>
       </ul>
     </div>
@@ -140,6 +144,60 @@ var fol = function(userID) {
 		Why don't you <a href="#">follow {{user.username()}}</a>?
 		{% endif %}
 	{% endif %}
+</div>
+
+<!--  Faves TABLE -->
+<div id="favorites" style="display:none">
+	<table class="table">
+		{% for tweet in user.favorites() %}
+		<tr>
+			<td height="15px">
+	        	<div class="overflow">
+	        		<a href="/users/{{tweet.userID()}}">{{ tweet.username() }}</a> tweeted...
+	        	</div>
+	        </td>
+	        <td>
+	        	<div class="overflow">
+	            {% if User.logged_in() and tweet.userID() == User.current_id() %}
+	            <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
+	                <input type="submit" class="linkbutton" value="delete">
+	            </form>
+	            {% endif %}
+	          </div>
+	        </td>
+	    </tr>
+		  <tr>
+		  	<td>{{ tweet.vals['content'] | safe }} </td>
+		  </tr>
+	  	{% endfor %}
+	</table>
+</div>
+
+<!--  Faves TABLE -->
+<div id="retweets" style="display:none">
+	<table class="table">
+		{% for tweet in user.retweets() %}
+		  <tr>
+			<td height="15px">
+	        	<div class="overflow">
+	        		<a href="/users/{{tweet.userID()}}">{{ tweet.username() }}</a> tweeted...
+	        	</div>
+	        </td>
+	        <td>
+	        	<div class="overflow">
+	            {% if User.logged_in() and tweet.userID() == User.current_id() %}
+	            <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
+	                <input type="submit" class="linkbutton" value="delete">
+	            </form>
+	            {% endif %}
+	          </div>
+	        </td>
+	    </tr>
+		  <tr>
+		  	<td>{{ tweet.vals['content'] | safe }} </td>
+		  </tr>
+	  	{% endfor %}
+	</table>
 </div>
 
 {% endblock %}

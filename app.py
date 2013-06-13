@@ -60,6 +60,9 @@ def users():
 		password = request.form.get("password", "")
 		passwordconf = request.form.get("passwordconf", "")
 		email = request.form.get("email", "")
+		age = request.form.get("age", "")
+		sex = request.form.get("sex", "")
+		facebookURL = request.form.get("facebookURL", "")
 		
 		error = {}
 		if username and password and email and password == passwordconf:
@@ -84,6 +87,26 @@ def users():
 @app.route("/users/<userid>")
 def user_profile(userid):
 	return render_template("user.html", user=User.find_by_id(userid))
+
+@app.route("/tweets/favorite/<tweetID>", methods=["POST"])
+def favorite(tweetID):
+	if not User.logged_in():
+		render_template("signup.html", error={'general':'you are not logged in'})
+	if User.current().is_favoriting(tweetID):
+		User.current().remove_favorite(tweetID)
+	else:
+		User.current().add_favorite(tweetID)
+	return redirect(url_for('user_profile', userid=User.current_id()))
+
+@app.route("/tweets/retweet/<tweetID>", methods=["POST"])
+def retweet(tweetID):
+	if not User.logged_in():
+		render_template("signup.html", error={'general':'you are not logged in'})
+	if User.current().is_retweeting(tweetID):
+		User.current().remove_retweet(tweetID)
+	else:
+		User.current().add_retweet(tweetID)
+	return redirect(url_for('user_profile', userid=User.current_id()))
 
 @app.route("/users/<int:userid>/tweets")
 def user_tweets(userid):
@@ -183,7 +206,7 @@ def follow(userID):
 		msg = "You are now following " + tofollow.username()
 		user.follow(userID)
 	set_active(template.split(".")[0])
-	return render_template(template, user=User.find_by_id(src_userID), messages={'general':msg})
+	return redirect(url_for('user_profile', userid=User.current_id()))
 
 @app.route("/hashtags/<content>")
 def show_hashtag(content):

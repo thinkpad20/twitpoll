@@ -125,19 +125,6 @@ CREATE TABLE Favorites (
 	FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
--- select "create Messages" as "Action";
-
-CREATE TABLE Messages (
-	messageID INTEGER				NOT NULL AUTO_INCREMENT,
-	senderID INTEGER 				NOT NULL,
-	receiverID INTEGER	 			NOT NULL,
-	content VARCHAR(140)			NOT NULL,
-	dateTime TIMESTAMP			 	NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	PRIMARY KEY (messageID),
-	FOREIGN KEY (senderID) REFERENCES Users(userID) ON DELETE CASCADE,
-	FOREIGN KEY (receiverID) REFERENCES Users(userID) ON DELETE CASCADE
-);
-
 -- select "create Polls" as "Action";
 
 CREATE TABLE Polls (

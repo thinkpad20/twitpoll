@@ -60,7 +60,7 @@ View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="sho
 							  <td><a href="/users/{{user.userID()}}">{{ user.username() }}</a></td>
 							  {% if User.logged_in() %}
 							  <td padding-top="0px">
-						  		{% if !User.current_is(user) %}
+						  		{% if not User.current_is(user) %}
 						  			<a id="hey" href="#" onclick="fol({{user.userID()}})">{{"unfollow" if User.current().is_following(user.userID()) else "follow"}}
 										</a>
 									{% endif %}
@@ -83,13 +83,29 @@ View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="sho
 		        	</div>
 		        </td>
 		        <td>
-		        	<div class="overflow">
+		        			        <td rowspan='2'>
+		        	<div>
 		            {% if User.logged_in() and tweet.userID() == User.current_id() %}
 		            <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
 		                <input type="submit" class="linkbutton" value="delete">
 		            </form>
+		            {% elif User.logged_in() %}
+		            <form action="/tweets/favorite/{{ tweet.tweetID() }}" method="post">
+		            	{% if User.current().is_favoriting(tweet.tweetID()) %}
+		            	<input type="submit" class="linkbutton" value="unfavorite">
+		            	{% else %}
+		            	<input type="submit" class="linkbutton" value="favorite">
+		            	{% endif %}
+		            </form>
+		            <form action="/tweets/retweet/{{ tweet.tweetID() }}" method="post">
+		            	{% if User.current().is_retweeting(tweet.tweetID()) %}
+		            	<input type="submit" class="linkbutton" value="remove retweet">
+		            	{% else %}
+		            	<input type="submit" class="linkbutton" value="retweet">
+		            	{% endif %}
 		            {% endif %}
 		          </div>
+		        </td>
 		        </td>
 		      </tr>
 		      <tr colspan="2">
@@ -121,13 +137,29 @@ View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="sho
 				        </div>
 				    </td>
 				    <td>
-				        <div class="overflow">
-				        {% if User.logged_in() and tweet.userID() == User.current_id() %}
-				        <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
-				            <input type="submit" class="linkbutton" value="delete">
-				        </form>
-				        {% endif %}
-				      </div>
+				        		        <td rowspan='2'>
+		        	<div>
+		            {% if User.logged_in() and tweet.userID() == User.current_id() %}
+		            <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
+		                <input type="submit" class="linkbutton" value="delete">
+		            </form>
+		            {% elif User.logged_in() %}
+		            <form action="/tweets/favorite/{{ tweet.tweetID() }}" method="post">
+		            	{% if User.current().is_favoriting(tweet.tweetID()) %}
+		            	<input type="submit" class="linkbutton" value="unfavorite">
+		            	{% else %}
+		            	<input type="submit" class="linkbutton" value="favorite">
+		            	{% endif %}
+		            </form>
+		            <form action="/tweets/retweet/{{ tweet.tweetID() }}" method="post">
+		            	{% if User.current().is_retweeting(tweet.tweetID()) %}
+		            	<input type="submit" class="linkbutton" value="remove retweet">
+		            	{% else %}
+		            	<input type="submit" class="linkbutton" value="retweet">
+		            	{% endif %}
+		            {% endif %}
+		          </div>
+		        </td>
 				    </td>
 				  </tr>
 				  <tr colspan="2">
@@ -158,11 +190,29 @@ View: <a href="#" onclick="show_all()">All tweets</a> | <a href="#" onclick="sho
 				        </div>
 				    </td>
 				    <td>
-				        <div class="overflow">
-				        <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
-				            <input type="submit" class="linkbutton" value="delete">
-				        </form>
-				      </div>
+				        		        <td rowspan='2'>
+		        	<div>
+		            {% if User.logged_in() and tweet.userID() == User.current_id() %}
+		            <form action="/tweets/delete/{{ tweet.tweetID() }}" method="post">
+		                <input type="submit" class="linkbutton" value="delete">
+		            </form>
+		            {% elif User.logged_in() %}
+		            <form action="/tweets/favorite/{{ tweet.tweetID() }}" method="post">
+		            	{% if User.current().is_favoriting(tweet.tweetID()) %}
+		            	<input type="submit" class="linkbutton" value="unfavorite">
+		            	{% else %}
+		            	<input type="submit" class="linkbutton" value="favorite">
+		            	{% endif %}
+		            </form>
+		            <form action="/tweets/retweet/{{ tweet.tweetID() }}" method="post">
+		            	{% if User.current().is_retweeting(tweet.tweetID()) %}
+		            	<input type="submit" class="linkbutton" value="remove retweet">
+		            	{% else %}
+		            	<input type="submit" class="linkbutton" value="retweet">
+		            	{% endif %}
+		            {% endif %}
+		          </div>
+		        </td>
 				    </td>
 				  </tr>
 				  <tr colspan="2">
